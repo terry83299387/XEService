@@ -137,10 +137,13 @@ public abstract class Processor implements Runnable {
 			errorResponse(Configurations.UNKNOWN_ERROR, e.getMessage(), request, response);
 
 		} finally {
-			String keepAlive = request.getHeader("Connection");
+			// ignore keep-alive as it may cause some problems.
+			// set Connection with false in response to simply disable this feature.
+			// (see Response.java)
+//			String keepAlive = request.getHeader("Connection");
 			request = null;
 			response = null;
-			if (connection != null && !"keep-alive".equals(keepAlive)) {
+			if (connection != null/* && !"keep-alive".equals(keepAlive)*/) {
 				try {
 					// if keep-alive flag was not set, close socket connection
 					connection.close();

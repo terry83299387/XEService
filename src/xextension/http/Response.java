@@ -33,6 +33,7 @@ public class Response {
 	private static final String CONTENT_LENGTH = "Content-Length";
 	private static final String DATE = "Date";
 	private static final String SERVER = "Server";
+	private static final String CONNECTION = "Connection";
 	private static final String DEFAULT_CONTENT_TYPE = "application/json";
 	private static final String HEADER_SEPARATOR = ": ";
 	private static final String SPACE = " ";
@@ -80,6 +81,7 @@ public class Response {
 			sb.append(HTTP_VERSION).append(SPACE).append(status).append(NEW_LINE);
 
 			this.headers.put(SERVER, Configurations.NAME + SPACE + Configurations.VERSION);
+			this.headers.put(CONNECTION, "Close"); // ignore keep-alive and always close the connection
 			this.headers.put(DATE, new Date().toString());
 			// default content type
 			if (!this.headers.containsKey(CONTENT_TYPE)) {
