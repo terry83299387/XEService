@@ -36,6 +36,7 @@ public abstract class Processor implements Runnable {
 		try {
 			request = Request.parseRequest(connection.getInputStream());
 			response = Response.getResponse(connection.getOutputStream());
+			response.setJsonCallback(request.getParameter(Configurations.JSON_CALLBACK));
 
 			operatorParam = request.getParameter(Configurations.REQUEST_OPERATOR);
 			int operator = Integer.parseInt(operatorParam.trim());

@@ -19,6 +19,7 @@ public final class Configurations {
 	public static final long	REQUEST_TIME_OUT		= 30 * 1000; // 30 secs
 
 	// request & response filed names
+	public static final String	JSON_CALLBACK = "jsoncallback";
 	public static final String	REQUEST_OPERATOR		= "op";
 	public static final String	REQUEST_ID				= "reqId";
 	public static final String	RESPONSE_RETURN_CODE	= "returnCode";

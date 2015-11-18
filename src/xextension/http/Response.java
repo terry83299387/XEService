@@ -43,6 +43,7 @@ public class Response {
 	private Map<String, String>	headers	= new HashMap<String, String>();
 	private String				status	= "200 OK";
 	private StringBuilder		content	= new StringBuilder(1024);
+	private String jsonCallback;
 
 	public Response() {
 	}
@@ -87,7 +88,9 @@ public class Response {
 			if (!this.headers.containsKey(CONTENT_TYPE)) {
 				this.headers.put(CONTENT_TYPE, DEFAULT_CONTENT_TYPE);
 			}
-			// content length. Note: it should be final-encoded byte-length, not char-length
+			// jquery getJson needs this format
+			content = new StringBuilder(jsonCallback).append("(").append(content).append(")");
+			// content length. Note: it should be final encoded byte-length, not char-length
 			int len = content.toString().getBytes(DEFAULT_ENCODING).length;
 			this.headers.put(CONTENT_LENGTH, "" + len);
 
@@ -105,5 +108,12 @@ public class Response {
 		} catch (IOException e) {
 			// ignore (failed silently)
 		}
+	}
+
+	/**
+	 * @param jsonCallback the jsonCallback to set
+	 */
+	public void setJsonCallback(String jsonCallback) {
+		this.jsonCallback = jsonCallback;
 	}
 }
