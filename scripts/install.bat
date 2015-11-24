@@ -7,7 +7,7 @@ echo.
 echo    ------------------------------------
 echo.
 
-reg add HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run /v XEService /d "%~dp0%XEService.exe"
+add HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run /v XEService /d "%~dp0%XEService.exe"
 
 %~d0
 cd "%~dp0%"

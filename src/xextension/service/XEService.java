@@ -59,7 +59,7 @@ public class XEService {
 	 * @param args
 	 * @throws Exception 
 	 */
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) {
 		// check if service already started
 		checkServiceAlreadyStarted();
 
