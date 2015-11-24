@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="debug" strict="true" name="XMLConfigTest" packages="">
+	<Properties>
+		<Property name="filename">Xlog.log</Property>
+	</Properties>
+
+	<Appenders>
+		<Appender type="File" name="File" fileName="${filename}">
+			<Layout type="PatternLayout">
+				<Pattern>%d %p %C{1.} [%t] %m%n</Pattern>
+			</Layout>
+		</Appender>
+	</Appenders>
+
+	<Loggers>
+		<Root level="info">
+			<AppenderRef ref="File" />
+		</Root>
+	</Loggers>
+
+</Configuration>
