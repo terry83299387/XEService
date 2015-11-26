@@ -3,15 +3,31 @@
  */
 package xextension.global;
 
+import java.io.IOException;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  * @author QiaoMingkui
  *
  */
 public final class Configurations {
+	private static final Logger logger = LogManager.getLogger(Configurations.class);
+
 	// version info
-	public static final String	NAME					= "XeXtension";
-	public static final String	VERSION					= "1.0"; // version increases at each time update
-	public static final String	COPYRIGHT				= "XeXtension© is powered by Shanghai Supercomputer Center (SSC).\nAll right reserved.";
+	public static final String	NAME				= "XeXtension";
+	public static final String	COPYRIGHT		= "XeXtension© is powered by Shanghai Supercomputer Center (SSC).\nAll right reserved.";
+	// read version from config, version increases at each time update
+	public static final String	VERSION;
+	static {
+		try {
+			VERSION = ConfigHelper.getProperty("version");
+		} catch(IOException e) {
+			logger.error("can not get the value of current version, failed to read config: ", e);
+			throw new IllegalStateException("failed to read config");
+		}
+	}
 
 	// general constants
 	public static final String	DEFAULT_ENCODING		= "UTF-8";

@@ -89,7 +89,9 @@ public class Response {
 				this.headers.put(CONTENT_TYPE, DEFAULT_CONTENT_TYPE);
 			}
 			// jquery getJson needs this format
-			content = new StringBuilder(jsonCallback).append("(").append(content).append(")");
+			if (jsonCallback != null) {
+				content = new StringBuilder(jsonCallback).append("(").append(content).append(")");
+			}
 			// content length. Note: it should be final encoded byte-length, not char-length
 			int len = content.toString().getBytes(DEFAULT_ENCODING).length;
 			this.headers.put(CONTENT_LENGTH, "" + len);

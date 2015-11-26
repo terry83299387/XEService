@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="debug" strict="true" name="XMLConfigTest" packages="">
+<Configuration status="info" strict="true" name="XeXLogConfig" packages="">
 	<Properties>
 		<Property name="filename">Xlog.log</Property>
 	</Properties>
