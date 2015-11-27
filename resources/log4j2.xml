@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="info" strict="true" name="XeXLogConfig" packages="">
 	<Properties>
-		<Property name="filename">Xlog.log</Property>
+		<Property name="filename">xex.log</Property>
 	</Properties>
 
 	<Appenders>

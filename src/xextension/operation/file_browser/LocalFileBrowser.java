@@ -7,12 +7,6 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class LocalFileBrowser {
-	public static final int		FILES_ONLY			= JFileChooser.FILES_ONLY;
-	public static final int		DIRECTORIES_ONLY	= JFileChooser.DIRECTORIES_ONLY;
-	public static final int		FILES_DIRECTORIES	= JFileChooser.FILES_AND_DIRECTORIES;
-
-	public static final String	FILE_SEPARATOR		= "|";
-
 	private _FileChooser		fileChooser			= new _FileChooser();
 
 	public void chooseFile() {
@@ -27,18 +21,16 @@ public class LocalFileBrowser {
 		if (!fileChooser.selected)
 			throw new IllegalStateException("file has not been selected");
 
-
 		return fileChooser.selectedFiles;
 	}
 
 	private static class _FileChooser extends Thread {
-		private boolean		multiSelection;
-		private int			fileSelectionMode	= FILES_ONLY;
-		private String		defaultDirectory;
+		private boolean			multiSelection;
+		private int					fileSelectionMode	= FileBrowseProcessor.FILES_ONLY;
+		private String			defaultDirectory;
 		private FileFilter	fileFilter;
-
-		private boolean		selected;
-		private String		selectedFiles;
+		private boolean			selected;
+		private String			selectedFiles;
 
 		public void run() {
 			JFileChooser fileChooser = new JFileChooser();
@@ -67,7 +59,7 @@ public class LocalFileBrowser {
 				File[] files = fileChooser.getSelectedFiles();
 				for (File file : files) {
 					if (sb.length() > 0) {
-						sb.append(FILE_SEPARATOR);
+						sb.append(FileBrowseProcessor.FILE_SEPARATOR);
 					}
 					sb.append(file.getAbsolutePath());
 				}
@@ -103,8 +95,8 @@ public class LocalFileBrowser {
 	 *        the fileSelectionMode to set
 	 */
 	public void setFileSelectionMode(int fileSelectionMode) {
-		if (fileSelectionMode == FILES_ONLY || fileSelectionMode == DIRECTORIES_ONLY
-				|| fileSelectionMode == FILES_DIRECTORIES) {
+		if (fileSelectionMode == FileBrowseProcessor.FILES_ONLY || fileSelectionMode == FileBrowseProcessor.DIRECTORIES_ONLY
+				|| fileSelectionMode == FileBrowseProcessor.FILES_DIRECTORIES) {
 			fileChooser.fileSelectionMode = fileSelectionMode;
 		}
 	}

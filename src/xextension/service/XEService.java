@@ -8,7 +8,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import xextension.global.Configurations;
-import xextension.operation.Processor;
 
 /**
  * XEService stands for Xfinity Extension Service.
@@ -42,7 +41,7 @@ public class XEService {
 			Socket connection = null;
 			while (true) {
 					connection = server.accept();
-					Processor.dispatchService(connection);
+					ServiceDispatcher.dispatchService(connection);
 			}
 		} catch (Exception e) {
 			logger.error("an error occurs: ", e);

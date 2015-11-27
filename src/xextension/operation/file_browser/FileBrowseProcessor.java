@@ -1,6 +1,9 @@
 package xextension.operation.file_browser;
 
 import static xextension.global.Configurations.REQUEST_ID;
+
+import javax.swing.JFileChooser;
+
 import xextension.global.Configurations;
 import xextension.global.IDGenerator;
 import xextension.http.Request;
@@ -14,6 +17,18 @@ import xextension.operation.Processor;
  * 
  */
 public class FileBrowseProcessor extends Processor {
+	public static final String	MULTI_SELECTION			= "multi";
+	public static final String	SELECTION_MODE			= "mode";
+	public static final String	DEFAULT_DIR					= "defaultDir";
+	public static final String	FILTER							= "filter";
+	public static final String	FILTER_DESC					= "filterDesc";
+	public static final String	FILTER_SEPARATOR		= ",";
+
+	public static final int			FILES_ONLY					= JFileChooser.FILES_ONLY;
+	public static final int			DIRECTORIES_ONLY		= JFileChooser.DIRECTORIES_ONLY;
+	public static final int			FILES_DIRECTORIES		= JFileChooser.FILES_AND_DIRECTORIES;
+	public static final String	FILE_SEPARATOR			= "|";
+
 	private static LocalFileBrowser	fileBrowser;
 	private static String currentId;
 
@@ -54,22 +69,22 @@ public class FileBrowseProcessor extends Processor {
 		fileBrowser = new LocalFileBrowser();
 
 		//---------------- setup attributes ---------------
-		String multiSelection = request.getParameter("multi");
+		String multiSelection = request.getParameter(MULTI_SELECTION);
 		fileBrowser.setMultiSelection("true".equals(multiSelection));
 
 		try {
-			String fileSelectionMode = request.getParameter("mode");
+			String fileSelectionMode = request.getParameter(SELECTION_MODE);
 			fileBrowser.setFileSelectionMode(Integer.parseInt(fileSelectionMode));
 		} catch (NumberFormatException e) {
 		}
 
-		String defaultDir = request.getParameter("defaultDir");
+		String defaultDir = request.getParameter(DEFAULT_DIR);
 		fileBrowser.setDefaultDirectory(defaultDir);
 
-		String filter = request.getParameter("filter");
-		String filterDesc = request.getParameter("filterDesc");
+		String filter = request.getParameter(FILTER);
+		String filterDesc = request.getParameter(FILTER_DESC);
 		if (filter != null && filter.trim().length() != 0) {
-			fileBrowser.setFileFilter(filter.split(","), filterDesc);
+			fileBrowser.setFileFilter(filter.split(FILTER_SEPARATOR), filterDesc);
 		}
 		//-------------- end setup attributes --------------
 

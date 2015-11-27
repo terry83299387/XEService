@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import xextension.global.Configurations;
+import xextension.operation.OperationResult;
 
 /**
  * This article introduces information about HTTP Message:
@@ -28,22 +29,23 @@ import xextension.global.Configurations;
  * 
  */
 public class Response {
-	private static final String HTTP_VERSION = "HTTP/1.1";
-	private static final String CONTENT_TYPE = "Content-Type";
-	private static final String CONTENT_LENGTH = "Content-Length";
-	private static final String DATE = "Date";
-	private static final String SERVER = "Server";
-	private static final String CONNECTION = "Connection";
-	private static final String DEFAULT_CONTENT_TYPE = "application/json";
-	private static final String HEADER_SEPARATOR = ": ";
-	private static final String SPACE = " ";
-	private static final String NEW_LINE = "\r\n";
+	private static final String HTTP_VERSION				= "HTTP/1.1";
+	private static final String CONTENT_LENGTH			= "Content-Length";
+	private static final String DATE								= "Date";
+	private static final String SERVER							= "Server";
+	private static final String CONNECTION					= "Connection";
+	private static final String CONNECTION_CLOSE		= "Close";
+	private static final String HEADER_SEPARATOR		= ": ";
+	private static final String SPACE								= " ";
+	private static final String LEFT_PARENTHESE			= "(";
+	private static final String RIGHT_PARENTHESE		= ")";
+	private static final String NEW_LINE						= "\r\n";
 
-	private Writer				out;
-	private Map<String, String>	headers	= new HashMap<String, String>();
-	private String				status	= "200 OK";
-	private StringBuilder		content	= new StringBuilder(1024);
-	private String jsonCallback;
+	private Writer							out;
+	private Map<String, String>	headers							= new HashMap<String, String>();
+	private String							status							= "200 OK";
+	private StringBuilder				content							= new StringBuilder(1024);
+	private String							jsonCallback;
 
 	public Response() {
 	}
@@ -82,15 +84,15 @@ public class Response {
 			sb.append(HTTP_VERSION).append(SPACE).append(status).append(NEW_LINE);
 
 			this.headers.put(SERVER, Configurations.NAME + SPACE + Configurations.VERSION);
-			this.headers.put(CONNECTION, "Close"); // ignore keep-alive and always close the connection
+			this.headers.put(CONNECTION, CONNECTION_CLOSE); // ignore keep-alive and always close the connection
 			this.headers.put(DATE, new Date().toString());
 			// default content type
-			if (!this.headers.containsKey(CONTENT_TYPE)) {
-				this.headers.put(CONTENT_TYPE, DEFAULT_CONTENT_TYPE);
+			if (!this.headers.containsKey(Configurations.CONTENT_TYPE)) {
+				this.headers.put(Configurations.CONTENT_TYPE, Configurations.DEFAULT_CONTENT_TYPE);
 			}
 			// jquery getJson needs this format
 			if (jsonCallback != null) {
-				content = new StringBuilder(jsonCallback).append("(").append(content).append(")");
+				content = new StringBuilder(jsonCallback).append(LEFT_PARENTHESE).append(content).append(RIGHT_PARENTHESE);
 			}
 			// content length. Note: it should be final encoded byte-length, not char-length
 			int len = content.toString().getBytes(DEFAULT_ENCODING).length;
@@ -110,6 +112,18 @@ public class Response {
 		} catch (IOException e) {
 			// ignore (failed silently)
 		}
+	}
+
+	/**
+	 * unified error response handler.
+	 */
+	public static void responseError(int returnCode, String msg, Request request, Response response) {
+		response.setHeader(Configurations.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+		OperationResult result = new OperationResult(request);
+		result.setReturnCode(returnCode);
+		result.setException(msg);
+		response.print(result.toJsonString());
+		response.flush();
 	}
 
 	/**

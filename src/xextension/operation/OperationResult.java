@@ -18,7 +18,7 @@ import xextension.http.Request;
 public class OperationResult {
 	private String				operator;
 	private String				reqId;
-	private int					returnCode;
+	private int						returnCode;
 	private String				respId;
 	private String				exception;
 	private Map<String, Object>	extraData	= new HashMap<String, Object>();

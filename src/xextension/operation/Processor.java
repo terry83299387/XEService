@@ -5,7 +5,6 @@ import java.net.Socket;
 import xextension.global.Configurations;
 import xextension.http.Request;
 import xextension.http.Response;
-import xextension.operation.file_browser.FileBrowseProcessor;
 
 /**
  * Abstract class which provides default action for handling requests.
@@ -16,76 +15,11 @@ import xextension.operation.file_browser.FileBrowseProcessor;
  * 
  */
 public abstract class Processor implements Runnable {
-	private Socket connection;
-	private Request request;
-	private Response response;
+	private Socket		connection;
+	private Request		request;
+	private Response	response;
 
 	public Processor() {
-	}
-
-	/**
-	 * Dispatch a service to process request.
-	 * TODO 将本方法和getProcessor()提取为ServiceDispatcher类
-	 * 
-	 * @param connection
-	 */
-	public static void dispatchService(Socket connection) {
-		Request request = null;
-		Response response = null;
-		String operatorParam = null;
-		try {
-			request = Request.parseRequest(connection.getInputStream());
-			response = Response.getResponse(connection.getOutputStream());
-			response.setJsonCallback(request.getParameter(Configurations.JSON_CALLBACK));
-
-			operatorParam = request.getParameter(Configurations.REQUEST_OPERATOR);
-			int operator = Integer.parseInt(operatorParam.trim());
-			Processor processor = getProcessor(operator);
-			processor.setConnection(connection);
-			processor.setRequest(request);
-			processor.setResponse(response);
-
-			// to run each processor in separate threads allows them to do long time work
-			Thread t = new Thread(processor);
-			t.start();
-
-		} catch (NumberFormatException e) {
-			errorResponse(Configurations.UNKNOWN_OPERATOR,
-					"operator is not illegal:" + operatorParam, request, response);
-		} catch (UnknownOperatorException e) {
-			errorResponse(Configurations.UNKNOWN_OPERATOR, e.getMessage(), request, response);
-		} catch (Exception e) {
-			errorResponse(Configurations.UNKNOWN_ERROR, e.getMessage(), request, response);
-		}
-	}
-
-	/**
-	 * Return an appropriate Processor instance to handle the request.
-	 * 
-	 * @param operator
-	 * @return
-	 * @throws UnknownOperatorException
-	 */
-	public static Processor getProcessor(int operator) throws UnknownOperatorException {
-		Processor processor = null;
-		switch (operator) {
-			case Configurations.VERSION_INFO:
-				processor = new VersionInfo();
-				break;
-			case Configurations.FILE_BROWSER:
-				processor = new FileBrowseProcessor();
-				break;
-			// case Configurations.FILE_TRANSFER: // TODO
-			// processor = new FileTransferProcessor();
-			// break;
-			case Configurations.ECHO_BACK:
-				processor = new EchoBack();
-				break;
-			default:
-				throw new UnknownOperatorException("unknown operator:" + operator);
-		}
-
-		return processor;
 	}
 
 	/**
@@ -116,7 +50,7 @@ public abstract class Processor implements Runnable {
 	public void doRequest(Request request, Response response) throws UnsupportedMethodException {
 		if (request == null || response == null) return;
 
-		response.setHeader("Access-Control-Allow-Origin", "*");
+		response.setHeader(Configurations.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
 
 		String method = request.getMethod();
 		if (Request.GET.equals(method)) {
@@ -133,37 +67,23 @@ public abstract class Processor implements Runnable {
 		try {
 			this.doRequest(request, response);
 		} catch (UnsupportedMethodException e) {
-			errorResponse(Configurations.UNSUPPORTED_METHOD, e.getMessage(), request, response);
+			Response.responseError(Configurations.UNSUPPORTED_METHOD, e.getMessage(), request, response);
 		} catch (Exception e) {
-			errorResponse(Configurations.UNKNOWN_ERROR, e.getMessage(), request, response);
+			Response.responseError(Configurations.UNKNOWN_ERROR, e.getMessage(), request, response);
 
 		} finally {
-			// ignore keep-alive as it may cause some problems.
-			// set Connection with false in response to simply disable this feature.
-			// (see Response.java)
-//			String keepAlive = request.getHeader("Connection");
+			// ignore keep-alive as it may cause problems.
+			// set Connection field to close in response to simply disable this feature.
+			// (see Response.flush())
 			request = null;
 			response = null;
-			if (connection != null/* && !"keep-alive".equals(keepAlive)*/) {
+			if (connection != null) {
 				try {
-					// if keep-alive flag was not set, close socket connection
 					connection.close();
 				} catch (Exception e) {
 				}
 			}
 		}
-	}
-
-	/*
-	 * unified error response handler.
-	 */
-	private static void errorResponse(int returnCode, String msg, Request request, Response response) {
-		response.setHeader("Access-Control-Allow-Origin", "*");
-		OperationResult result = new OperationResult(request);
-		result.setReturnCode(returnCode);
-		result.setException(msg);
-		response.print(result.toJsonString());
-		response.flush();
 	}
 
 	/**

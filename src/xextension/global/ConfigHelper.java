@@ -3,6 +3,7 @@
  */
 package xextension.global;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,7 +16,8 @@ import java.util.Properties;
  *
  */
 public class ConfigHelper {
-	public static final String CONFIG_FILE = "resources\\config.properties";
+	// config file related
+	public static final String	CONFIG_FILE		= "resources" + File.separator + "config.properties";
 
 	public static String getProperty(String name) throws IOException {
 		Properties config = readConfig();

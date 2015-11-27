@@ -24,9 +24,14 @@ import java.util.StringTokenizer;
  * 
  */
 public class Request {
-
 	public static final String	POST	= "POST";
 	public static final String	GET		= "GET";
+
+	private static final String SPACE						= " ";
+	private static final String PARAM_FLAG			= "?";
+	private static final String PARAM_SEPARATOR	= "&";
+	private static final String EQUAL						= "=";
+	private static final String COLON						= ":";
 
 	private String				method;
 	private String				url;
@@ -54,7 +59,7 @@ public class Request {
 		// request line
 		String[] splits;
 		line = reader.readLine();
-		splits = line.split(" ");
+		splits = line.split(SPACE);
 		request.method = splits[0];
 		request.url = splits[1];
 		if (splits.length > 2) {
@@ -63,7 +68,7 @@ public class Request {
 
 		// headers
 		while ((line = reader.readLine()).length() != 0) {
-			int pos = line.indexOf(":");
+			int pos = line.indexOf(COLON);
 			request.headers.put(line.substring(0, pos).trim(), line.substring(pos + 1).trim());
 		}
 
@@ -138,18 +143,18 @@ public class Request {
 	private void parseParameters() {
 		parameters = new HashMap<String, String>();
 
-		int pos = url.lastIndexOf("?");
+		int pos = url.lastIndexOf(PARAM_FLAG);
 		if (pos == -1 || pos == url.length() - 1) {
 			return;
 		}
 		String params = url.substring(pos + 1);
 
-		StringTokenizer tokens = new StringTokenizer(params, "&");
+		StringTokenizer tokens = new StringTokenizer(params, PARAM_SEPARATOR);
 		String param, name, value;
 		try {
 			while (tokens.hasMoreTokens()) {
 				param = tokens.nextToken();
-				pos = param.indexOf("=");
+				pos = param.indexOf(EQUAL);
 				if (param.length() != 0 && pos != -1) {
 					name = param.substring(0, pos);
 					// param may not have a value (in other words, which has an empty value), "p=" for instance

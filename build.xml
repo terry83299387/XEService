@@ -1,11 +1,8 @@
 <?xml version="1.0" ?>
 <project name="xextension" default="output">
-	<property name="mainJarName" value="xextension">
-	</property>
-	<property name="xeServiceJarName" value="xeservice">
-	</property>
-	<property name="fileBrowserJarName" value="filebrowser">
-	</property>
+
+	<property name="xextensionJarName" value="xextension"/>
+	<property name="filebrowserJarName" value="filebrowser"/>
 
 	<property name="output.dir" value="exports" />
 	<property name="output.bin.dir" value="${output.dir}/bin" />
@@ -43,48 +40,46 @@
 	</target>
 
 	<target name="output" depends="complie">
-		<mkdir dir="${output.bin.dir}/${mainJarName}_cls" />
-		<copydir dest="${output.bin.dir}/${mainJarName}_cls" src="${output.bin.dir}/">
+		<!-- xextension.jar -->
+		<mkdir dir="${output.bin.dir}/${xextensionJarName}_cls" />
+		<copydir dest="${output.bin.dir}/${xextensionJarName}_cls" src="${output.bin.dir}/">
 			<include name="xextension/Main.class"/>
 			<include name="xextension/autoupdate/**"/>
-			<include name="xextension/global/ConfigHelper.class"/>
-		</copydir>
-		<jar destfile="${output.libs.dir}/${mainJarName}.jar" basedir="${output.bin.dir}/${mainJarName}_cls">
-		</jar>
-
-		<mkdir dir="${output.bin.dir}/${xeServiceJarName}_cls/" />
-		<copydir dest="${output.bin.dir}/${xeServiceJarName}_cls" src="${output.bin.dir}/">
 			<include name="xextension/global/**"/>
 			<include name="xextension/http/**"/>
 			<include name="xextension/operation/*.class"/>
 			<include name="xextension/service/**"/>
-			<exclude name="xextension/global/ConfigHelper.class"/>
 		</copydir>
-		<jar destfile="${output.libs.dir}/${xeServiceJarName}.jar" basedir="${output.bin.dir}/${xeServiceJarName}_cls">
+		<jar destfile="${output.libs.dir}/${xextensionJarName}.jar" basedir="${output.bin.dir}/${xextensionJarName}_cls">
 		</jar>
 
-		<mkdir dir="${output.bin.dir}/${fileBrowserJarName}_cls/" />
-		<copydir dest="${output.bin.dir}/${fileBrowserJarName}_cls" src="${output.bin.dir}/">
+		<!-- filebrowser.jar -->
+		<mkdir dir="${output.bin.dir}/${filebrowserJarName}_cls/" />
+		<copydir dest="${output.bin.dir}/${filebrowserJarName}_cls" src="${output.bin.dir}/">
 			<include name="xextension/operation/file_browser/**"/>
 		</copydir>
-		<jar destfile="${output.libs.dir}/${fileBrowserJarName}.jar" basedir="${output.bin.dir}/${fileBrowserJarName}_cls">
+		<jar destfile="${output.libs.dir}/${filebrowserJarName}.jar" basedir="${output.bin.dir}/${filebrowserJarName}_cls">
 		</jar>
 
+		<!-- resources -->
 		<copy todir="${output.res.dir}">
 			<fileset dir="${input.res.dir}" includes="*.*">
 			</fileset>
 		</copy>
 
+		<!-- scripts -->
 		<copy todir="${output.dir}">
 			<fileset dir="${input.scripts.dir}" includes="*.*">
 			</fileset>
 		</copy>
 
+		<!-- third part libs -->
 		<copy todir="${output.libs.dir}">
 			<fileset dir="${input.libs.dir}" includes="${input.libs.jars}">
 			</fileset>
 		</copy>
 
+		<!-- delete output bin dir -->
 		<delete includeemptydirs="true" failonerror="false">
 			<fileset dir="${output.dir}" includes="bin/**" />
 		</delete>

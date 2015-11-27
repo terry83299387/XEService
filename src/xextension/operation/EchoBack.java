@@ -14,6 +14,11 @@ import xextension.http.Response;
  * 
  */
 public class EchoBack extends Processor {
+	public static final String PARAMETERS		= "parameters";
+	public static final String HEADERS			= "headers";
+	public static final String VERSION			= "version";
+	public static final String URL					= "url";
+	public static final String METHOD				= "method";
 
 	public EchoBack() {
 	}
@@ -28,15 +33,15 @@ public class EchoBack extends Processor {
 		String respId = IDGenerator.nextId(this.getClass());
 		result.setResponseId(respId);
 
-		result.setExtraData("method", request.getMethod());
-		result.setExtraData("url", request.getUrl());
-		result.setExtraData("version", request.getVersion());
+		result.setExtraData(METHOD, request.getMethod());
+		result.setExtraData(URL, request.getUrl());
+		result.setExtraData(VERSION, request.getVersion());
 
 		Map<String, String> headers = request.getHeaders();
-		result.setExtraData("headers", headers);
+		result.setExtraData(HEADERS, headers);
 
 		Map<String, String> parameters = request.getParameters();
-		result.setExtraData("parameters", parameters);
+		result.setExtraData(PARAMETERS, parameters);
 
 		String ret = result.toJsonString();
 		response.print(ret);

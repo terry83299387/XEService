@@ -15,8 +15,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import xextension.autoupdate.AutoUpdater;
+import xextension.global.ConfigHelper;
 import xextension.global.Configurations;
 import xextension.global.UIManager;
+import xextension.operation.VersionInfo;
 import xextension.service.XEService;
 
 /**
@@ -24,38 +26,41 @@ import xextension.service.XEService;
  *
  */
 public class Main {
-	static {
-		System.setProperty("log4j.configurationFile", "resources\\log4j2.xml");
-	}
-	private static final Logger logger = LogManager.getLogger(Main.class);
+	private static final Logger	logger = LogManager.getLogger(Main.class);
+
+	private static final String	EQUAL = "=";
+	private static final String	SERVER_URL_PART = "/?";
+	private static final String	SERVER_URL_PREFIX = "http://localhost:";
+	private static final String	AUTOUPDATE_FALSE = "autoupdate=false";
+	private static final String	AUTOUPDATE_TRUE = "autoupdate=true";
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		/*try {
-			String workDir = System.getProperty("user.dir");
-			String curClassPath = System.getProperty("java.class.path");
-			String configClsPath = ConfigHelper.getProperty("classpath");
-			logger.info("config class path: " + configClsPath);
-			if (configClsPath != null && configClsPath.length() != 0) {
-				String[] cps = configClsPath.split(";");
-				StringBuilder classPath = new StringBuilder(curClassPath);
-				String separator = System.getProperty("path.separator");
-				String fileSeparator = System.getProperty("file.separator");
-				for (String item : cps) {
-					classPath.append(workDir).append(fileSeparator).append(item).append(separator);
-				}
-				System.setProperty("java.class.path", classPath.toString());
-				logger.info("classpath: " + System.getProperty("java.class.path"));
-			}
-		} catch (IOException e) {
-			logger.error("error occurs when try to set classpath", e);
-		}*/
-
 		try {
-			AutoUpdater autoUpdater = new AutoUpdater();
-			autoUpdater.autoUpdate();
+			boolean autoUpdate = false;
+			if (args.length > 0 && AUTOUPDATE_TRUE.equalsIgnoreCase(args[0])) {
+				autoUpdate = true;
+			} else if (args.length > 0 && AUTOUPDATE_FALSE.equalsIgnoreCase(args[0])) {
+				;
+			} else if ("true".equals(ConfigHelper.getProperty(Configurations.CUSTOMER_AUTOUPDATE))) {
+				autoUpdate = true;
+			}
+
+			if (autoUpdate) {
+				String oldVer = ConfigHelper.getProperty(Configurations.CUSTOMER_VERSION);
+				AutoUpdater autoUpdater = new AutoUpdater();
+				autoUpdater.autoUpdate();
+				String newVer = ConfigHelper.getProperty(Configurations.CUSTOMER_VERSION);
+				if (!oldVer.equals(newVer)/* && Native.isAvailable()*/) {
+//					Native.shellExecute(Native.SHELLEXECUTE_OPEN, "XEService.exe", null, null, Native.SW_NORMAL);
+					// jsmooth.Native is invalid (don't know why), how do I rerun application after update?
+					Runtime.getRuntime().exec(Configurations.EXE_FILE_NAME + " " + AUTOUPDATE_FALSE);
+					logger.info("update completes, restart now");
+					System.exit(0);
+				}
+			}
 		} catch (Exception e) {
 			logger.warn("Update failed, an error occurs while trying to update", e);
 		}
@@ -83,8 +88,9 @@ public class Main {
 		String name;
 		for (int p : Configurations.CANDIDATE_PORTS) {
 			try {
-				connection = (HttpURLConnection) new URL(
-						"http://localhost:" + p + "/?op=" + Configurations.VERSION_INFO).openConnection();
+				connection = (HttpURLConnection) new URL(SERVER_URL_PREFIX + p + SERVER_URL_PART
+							+ Configurations.REQUEST_OPERATOR + EQUAL + Configurations.VERSION_INFO
+						).openConnection();
 				connection.connect();
         reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         line = reader.readLine();
@@ -107,10 +113,10 @@ public class Main {
 			try {
         json = new JSONObject(line);
         if (json != null) {
-        	json = json.optJSONObject("extraData");
+        	json = json.optJSONObject(Configurations.RESPONSE_EXTRA_DATA);
         }
       	if (json != null) {
-        	name = json.optString("name");
+        	name = json.optString(VersionInfo.NAME);
 	        if (Configurations.NAME.equals(name)) {
 	        	logger.error("Startup failed, there already has a running service on port " + p);
 	        	System.exit(1);
