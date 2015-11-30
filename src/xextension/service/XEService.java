@@ -39,9 +39,10 @@ public class XEService {
 	public void startService() {
 		try {
 			Socket connection = null;
+			ServiceDispatcher dispatcher = new ServiceDispatcher();
 			while (true) {
 					connection = server.accept();
-					ServiceDispatcher.dispatchService(connection);
+					dispatcher.dispatchService(connection);
 			}
 		} catch (Exception e) {
 			logger.error("an error occurs: ", e);

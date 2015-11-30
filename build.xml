@@ -3,6 +3,8 @@
 
 	<property name="xextensionJarName" value="xextension"/>
 	<property name="filebrowserJarName" value="filebrowser"/>
+	<property name="runappJarName" value="runapp"/>
+	<property name="filetransferJarName" value="filetransfer"/>
 
 	<property name="output.dir" value="exports" />
 	<property name="output.bin.dir" value="${output.dir}/bin" />
@@ -60,6 +62,24 @@
 		</copydir>
 		<jar destfile="${output.libs.dir}/${filebrowserJarName}.jar" basedir="${output.bin.dir}/${filebrowserJarName}_cls">
 		</jar>
+
+		<!-- runapp.jar -->
+		<mkdir dir="${output.bin.dir}/${runappJarName}_cls/" />
+		<copydir dest="${output.bin.dir}/${runappJarName}_cls" src="${output.bin.dir}/">
+			<include name="xextension/operation/run_app/**"/>
+		</copydir>
+		<jar destfile="${output.libs.dir}/${runappJarName}.jar" basedir="${output.bin.dir}/${runappJarName}_cls">
+		</jar>
+
+		<!-- filetransfer.jar -->
+		<!--
+		<mkdir dir="${output.bin.dir}/${filetransferJarName}_cls/" />
+		<copydir dest="${output.bin.dir}/${filetransferJarName}_cls" src="${output.bin.dir}/">
+			<include name="xextension/operation/file_transfer/**"/>
+		</copydir>
+		<jar destfile="${output.libs.dir}/${filetransferJarName}.jar" basedir="${output.bin.dir}/${filetransferJarName}_cls">
+		</jar>
+		-->
 
 		<!-- resources -->
 		<copy todir="${output.res.dir}">

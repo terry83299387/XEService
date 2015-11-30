@@ -56,6 +56,7 @@ public final class Configurations {
 	public static final int		UNKNOWN_ID								= 103;
 	public static final int		UNSUPPORT_OPERATION				= 104;
 
+	// config file related
 	public static final String UPDATE_LOG_PATH							= "/xexupdate/update.log";
 	public static final String AUTOUPDATE_DEFAULT_SERVERS		= "autoupdate.default_servers";
 	public static final String VERSION_NAME_SEPARATOR				= "\\.";

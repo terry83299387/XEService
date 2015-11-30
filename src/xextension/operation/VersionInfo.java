@@ -29,11 +29,11 @@ public class VersionInfo extends Processor {
 	private static final String COLON				= ":";
 	private static final String SLASH				= "/";
 
-	public void doGet(Request request, Response response) throws UnsupportedMethodException {
+	public void doGet(Request request, Response response) {
 		this.doPost(request, response);
 	}
 
-	public void doPost(Request request, Response response) throws UnsupportedMethodException {
+	public void doPost(Request request, Response response) {
 		storeXfinityServer(request);
 
 		OperationResult result = new OperationResult(request);

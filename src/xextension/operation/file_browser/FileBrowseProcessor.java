@@ -1,7 +1,5 @@
 package xextension.operation.file_browser;
 
-import static xextension.global.Configurations.REQUEST_ID;
-
 import javax.swing.JFileChooser;
 
 import xextension.global.Configurations;
@@ -41,7 +39,7 @@ public class FileBrowseProcessor extends Processor {
 
 	// TODO need a synchronization?
 	public void doPost(Request request, Response response) {
-		String id = request.getParameter(REQUEST_ID);
+		String id = request.getParameter(Configurations.REQUEST_ID);
 		OperationResult result;
 
 		if (id != null && id.trim().length() > 0) { // query result for a prior request

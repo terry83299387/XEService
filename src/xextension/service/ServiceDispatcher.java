@@ -13,6 +13,7 @@ import xextension.operation.Processor;
 import xextension.operation.UnknownOperatorException;
 import xextension.operation.VersionInfo;
 import xextension.operation.file_browser.FileBrowseProcessor;
+import xextension.operation.run_app.RunApp;
 
 /**
  * @author QiaoMingkui
@@ -25,7 +26,7 @@ public class ServiceDispatcher {
 	 * 
 	 * @param connection
 	 */
-	public static void dispatchService(Socket connection) {
+	public void dispatchService(Socket connection) {
 		Request request = null;
 		Response response = null;
 		String operatorParam = null;
@@ -62,7 +63,7 @@ public class ServiceDispatcher {
 	 * @return
 	 * @throws UnknownOperatorException
 	 */
-	public static Processor getProcessor(int operator) throws UnknownOperatorException {
+	public Processor getProcessor(int operator) throws UnknownOperatorException {
 		Processor processor = null;
 		switch (operator) {
 			case Configurations.VERSION_INFO:
@@ -70,6 +71,9 @@ public class ServiceDispatcher {
 				break;
 			case Configurations.FILE_BROWSER:
 				processor = new FileBrowseProcessor();
+				break;
+			case Configurations.RUN_APP:
+				processor = new RunApp();
 				break;
 			// case Configurations.FILE_TRANSFER: // TODO
 			// processor = new FileTransferProcessor();

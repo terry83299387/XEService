@@ -27,18 +27,16 @@ public abstract class Processor implements Runnable {
 	 * 
 	 * @param request
 	 * @param response
-	 * @throws UnsupportedMethodException
 	 */
-	public abstract void doGet(Request request, Response response) throws UnsupportedMethodException;
+	public abstract void doGet(Request request, Response response);
 
 	/**
 	 * Handle POST requests.
 	 * 
 	 * @param request
 	 * @param response
-	 * @throws UnsupportedMethodException
 	 */
-	public abstract void doPost(Request request, Response response) throws UnsupportedMethodException;
+	public abstract void doPost(Request request, Response response);
 
 	/**
 	 * Handle requests.
