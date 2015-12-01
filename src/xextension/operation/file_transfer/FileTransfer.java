@@ -14,13 +14,11 @@ import xextension.operation.Processor;
 public class FileTransfer extends Processor {
 
 	public void doGet(Request request, Response response) {
-		// TODO
-
+		this.doPost(request, response);
 	}
 
 	public void doPost(Request request, Response response) {
-		// TODO
-
+		
 	}
 
 }

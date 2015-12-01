@@ -1,5 +1,6 @@
 package xextension.operation.run_app;
 
+import java.io.File;
 import java.io.IOException;
 
 import xextension.global.Configurations;
@@ -32,18 +33,37 @@ public class RunApp extends Processor {
 	public void doPost(Request request, Response response) {
 		// kitty startup parameters:
 		// [-l username] [-pw password] [-P port] server [-cmd "cd xxxx"]
-		try {
-			String appName = request.getParameter("appName"); // "resources\\kitty.exe"
-			if (appName == null || appName.trim().length() == 0) {
-				throw new IllegalArgumentException("app name is unspecified");
-			}
+		String appName = request.getParameter("appName");
+		if (appName == null || appName.trim().length() == 0) {
+			throw new IllegalArgumentException("app name is unspecified");
+		}
+		if (appName.indexOf("\\") != -1 || appName.indexOf("/") != -1) {
+			throw new IllegalArgumentException("app name is illegal");
+		}
+		appName = appName.trim();
 
-			appName = "resources\\" + appName;
-			String args = request.getParameter("args");
-			String cmd = appName + (args == null ? "" : " " + args);
-			Process p = Runtime.getRuntime().exec(cmd);
+		String workDir = appName;
+		if (appName.lastIndexOf(".") != -1) {
+			workDir = appName.substring(0, appName.lastIndexOf(".")).trim();
+		}
+		if (workDir.length() == 0) {
+			throw new IllegalArgumentException("app name is illegal");
+		}
+
+		String path = "resources\\" + workDir + "\\" + appName;
+		File app = new File(path);
+		if (!app.exists()) {
+			throw new IllegalAccessError("app does not exist");
+		}
+
+		String args = request.getParameter("args");
+		String cmd = path + (args == null ? "" : " " + args);
+
+		try {
+			// TODO 后续可以：终止进程，查询进程，写入输入、获取输出，查询/终止某一会话（浏览器窗口）期间打开的所有进程等
+			/*Process p = */Runtime.getRuntime().exec(cmd);
 		} catch (IOException e) {
-			throw new IllegalAccessError("can not open specified program.");
+			throw new IllegalAccessError("can not open specified program");
 		}
 
 		OperationResult result = new OperationResult(request);

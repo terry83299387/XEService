@@ -83,13 +83,13 @@
 
 		<!-- resources -->
 		<copy todir="${output.res.dir}">
-			<fileset dir="${input.res.dir}" includes="*.*">
+			<fileset dir="${input.res.dir}" includes="**">
 			</fileset>
 		</copy>
 
 		<!-- scripts -->
 		<copy todir="${output.dir}">
-			<fileset dir="${input.scripts.dir}" includes="*.*">
+			<fileset dir="${input.scripts.dir}" includes="**">
 			</fileset>
 		</copy>
 
