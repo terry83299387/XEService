@@ -167,10 +167,8 @@
 	}
 
 	function showError(ex) {
-		var msg = resp.exception || 'unknown exception';
-
 		$('#result').html('<h1>request failed</h1>'
-			+ '<p style="color:red;">error msg: ' + msg + '</p>');
+			+ '<p style="color:red;">error msg: ' + ex + '</p>');
 	}
 </script>
 
