@@ -28,7 +28,7 @@ public abstract class Processor implements Runnable {
 	 * @param request
 	 * @param response
 	 */
-	public abstract void doGet(Request request, Response response);
+	public abstract void doGet(Request request, Response response) throws Exception;
 
 	/**
 	 * Handle POST requests.
@@ -36,7 +36,7 @@ public abstract class Processor implements Runnable {
 	 * @param request
 	 * @param response
 	 */
-	public abstract void doPost(Request request, Response response);
+	public abstract void doPost(Request request, Response response) throws Exception;
 
 	/**
 	 * Handle requests.
@@ -45,7 +45,7 @@ public abstract class Processor implements Runnable {
 	 * @param response
 	 * @throws UnsupportedMethodException
 	 */
-	public void doRequest(Request request, Response response) throws UnsupportedMethodException {
+	public void doRequest(Request request, Response response) throws UnsupportedMethodException, Exception {
 		if (request == null || response == null) return;
 
 		response.setHeader(Configurations.ACCESS_CONTROL_ALLOW_ORIGIN, "*");

@@ -17,20 +17,14 @@
 <button id="filebrowser_multi">File Browser (Multiple)</button>&nbsp;&nbsp;
 <button id="filetransfer">File Transfer</button>&nbsp;&nbsp;
 <button id="runapp">Run App</button>&nbsp;&nbsp;
+<button id="remotedesktop">Remote Desktop</button>&nbsp;&nbsp;
 
 <div id="result" style="margin: 20px 0px;">&nbsp;</div>
 
 
 <script type="text/javascript" src="lib/jquery/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="js/PluginManager.js"></script>
 <script type="text/javascript">
-	var OPERATORS = {
-		echoBack               : 1,
-		fileBrowser            : 2,
-		fileTransfer           : 3,
-		runApp                 : 4,
-		versionInfo            : 5
-	};
-
 	var RETURN_CODES = {
 		OPERATION_SUCCEED      : 0,
 		OPERATION_UNCOMPLETED  : 1,
@@ -42,20 +36,19 @@
 	};
 
 	$('#versioninfo').on('click', function() {
-		sendRequest(OPERATORS.versionInfo, null, null, showVersionInfo);
+		PluginManager.versionInfo(showVersionInfo);
 	});
 
 	$('#echoback').on('click', function() {
-		sendRequest(OPERATORS.echoBack, null, null, showEchoBack);
+		PluginManager.echoBack(null, showEchoBack);
 	});
 
 	$('#filebrowser').on('click', function() {
-		sendRequest(OPERATORS.fileBrowser, null, null, getSelectedFile);
+		PluginManager.fileBrowser(null, getSelectedFile);
 	});
 
 	$('#filebrowser_multi').on('click', function() {
-		sendRequest(OPERATORS.fileBrowser,
-			null,
+		PluginManager.fileBrowser(
 			{
 				multi : true,
 				defaultDir : 'd:\\'
@@ -64,106 +57,56 @@
 	});
 
 	$('#filetransfer').on('click', function() {
-		$('#result').html('<p style="color:red;">does not implement yet.</p>');
+		PluginManager.fileTransfer({
+			files   : 'd:/ipconfig.png',
+			home    : '/home/linux/users/rdtest/jieliu/_eojfei000',
+			dlgtype : 'Upload',
+			module  : 'job',
+			rootpath: '/home/linux/users/rdtest/jieliu',
+			defaultpath : '/home/linux/users/rdtest/jieliu',
+		}, fileTransferResult)
 	});
 
 	$('#runapp').on('click', function() {
-		sendRequest(OPERATORS.runApp, null, {
+		PluginManager.runApp({
 			appName : 'kitty.exe',
 			args    : '-l rdtest -pw liujie02 192.168.239.10 -cmd "cd mkqiao"'
 		}, runAppResult);
 	});
 
-	function sendRequest(op, id, extraParams, callback) {
-		var data = {
-			op : op
-		};
-		if (id) data.reqId = id;
-		if (extraParams) {
-			for (var k in extraParams) {
-				data[k] = extraParams[k];
-			}
-		}
+	$('#remotedesktop').on('click', function() {
+		PluginManager.remoteDesktop(null, {
+		}, remoteDesktopResult);
+	});
 
-		var a = $.getJSON('http://localhost:20052/?jsoncallback=?', data, callback);
-		// request failed
-		a.fail(function(jqXHR, textStatus, ex) {
-			// TODO
-
-			/*
-			 * in ie, if service is down, the arguments will be:
-			 * 
-			 * testStatus: 'parsererror'
-			 * ex.description: 'xxxx was not called' (xxxx is the name of jsoncallback function)
-			 * ex.message: (same as ex.description)
-			 * ex.name: 'Error'
-			 */
-			alert('failed');
-		});
-
-		var head = document.head || $('head')[0] || document.documentElement;
-		var script = $(head).find('script')[0];
-
-		// chrome
-		var tOnError = script.onerror;
-		script.onerror = function(evt) {
-			alert('error');
-
-			// do clean
-			// delete script node
-			if (script.parentNode) {
-				script.parentNode.removeChild(script);
-			}
-			// delete jsonCallback global function
-			var src = script.src || '';
-			var idx = src.indexOf('jsoncallback=');
-			if (idx != -1) {
-				var idx2 = src.indexOf('&');
-				if (idx2 == -1) {
-					idx2 = src.length;
-				}
-				var jsonCallback = src.substring(idx + 13, idx2);
-				delete window[jsonCallback];
-			}
-			// clear console
-			if (typeof console !== 'undefined' && typeof console.clear === 'function') {
-				console.clear();
-			}
-		};
-	}
-
-	function showVersionInfo(response) {
-		if (!response || response.returnCode !== RETURN_CODES.OPERATION_SUCCEED) {
-			showError(response);
+	function showVersionInfo(success, data, ex) {
+		if (!success) {
+			showError(ex);
 			return;
 		}
 
-		var info = response.extraData;
 		$('#result').html('<h1>Version Info:</h1>'
-			+ 'software name: ' + info.name + '<br>'
-			+ 'version: ' + info.version + '<br>'
-			+ 'copyright: ' + info.copyright + '<br>'
+			+ 'software name: ' + data.name + '<br>'
+			+ 'version: ' + data.version + '<br>'
+			+ 'copyright: ' + data.copyright + '<br>'
 		);
 	}
 
-	function showEchoBack(response) {
-		//console.log('request done, here is the response:');
-		//console.log(response);
-
-		if (!response || response.returnCode !== RETURN_CODES.OPERATION_SUCCEED) {
-			showError(response);
+	function showEchoBack(success, resp, ex) {
+		if (!success) {
+			showError(ex);
 			return;
 		}
 
-		var extraData = response.extraData;
+		var extraData = resp.extraData;
 		var tab = '&nbsp;&nbsp;&nbsp;&nbsp;';
-		var str = '<p><b>response info</b><br>'
-			+ tab + 'returnCode:' + response.returnCode + '<br>'
-			+ tab + 'respId:' + response.respId + '<br>'
-			+ tab + 'exception:' + (response.exception || '') + '</p>'
+		var str = '<p><b>resp info</b><br>'
+			+ tab + 'returnCode:' + resp.returnCode + '<br>'
+			+ tab + 'respId:' + resp.respId + '<br>'
+			+ tab + 'exception:' + (resp.exception || '') + '</p>'
 			+ '<p><b>request info</b><br>'
-			+ tab + 'op:' + response.op + '<br>'
-			+ tab + 'reqId:' + response.reqId + '<br>';
+			+ tab + 'op:' + resp.op + '<br>'
+			+ tab + 'reqId:' + resp.reqId + '<br>';
 
 		var parameters = extraData.parameters;
 		str += tab + 'other parameters:<br>'
@@ -186,55 +129,49 @@
 		$('#result').html('<h1>request done</h1>' + str);
 	}
 
-	function getSelectedFile(response) {
-		if (!response) return;
-
-		var id = response.respId;
-		var returnCode = response.returnCode;
-		switch (returnCode) {
-			case RETURN_CODES.OPERATION_SUCCEED:
-				var data = response.extraData || {};
-				var str = data.selectedFiles || '未选择任何文件';
-				$('#result').html('<h1>select files:</h1>' + str.replace(/\|/g, '<br>'));
-				break;
-			case RETURN_CODES.OPERATION_UNCOMPLETED:
-				setTimeout(function() {
-					sendRequest(OPERATORS.fileBrowser, id, null, getSelectedFile);
-				}, 100);
-				break;
-			case RETURN_CODES.UNSUPPORT_OPERATION:
-				$('#result').html('<p style="color:red;">操作无法完成，原因：<br>' + response.exception + "</p>");
-				break;
-			case RETURN_CODES.UNKNOWN_ID:
-			default:
-				break;
+	function getSelectedFile(success, data, ex) {
+		if (!success) {
+			showError('<p style="color:red;">操作无法完成，原因：<br>' + ex + '</p>');
+			return;
 		}
+
+		var files = data.selectedFiles || '未选择任何文件';
+		$('#result').html('<h1>select files:</h1>' + files.replace(/\|/g, '<br>'));
 	}
 
-	function runAppResult(response) {
-		if (response && response.returnCode === RETURN_CODES.OPERATION_SUCCEED) {
-			$('#result').html('<p>程序已启动</p>');
-		} else {
-			showError(response);
+	function runAppResult(success, data, ex) {
+		if (!success) {
+			showError(ex);
+			return;
 		}
+
+		$('#result').html('<p>程序已启动</p>');
 	}
 
-	function showError(response) {
-		response = response || {};
+	function remoteDesktopResult(success, data, ex) {
+		if (!success) {
+			showError(ex);
+			return;
+		}
 
-		var returnCode = response.returnCode || 'no return code';
-		var msg = response.exception || 'unknown exception';
+		$('#result').html('<p>远程桌面已启动</p>');
+	}
+
+	function fileTransferResult(success, data, ex) {
+		if (!success) {
+			showError(ex);
+			return;
+		}
+
+		$('#result').html('<p>文件开始传输</p>');
+	}
+
+	function showError(ex) {
+		var msg = resp.exception || 'unknown exception';
 
 		$('#result').html('<h1>request failed</h1>'
-			+ '<p style="color:red;">returnCode: ' + returnCode + '<br>'
-			+ 'error msg: ' + msg + '</p>');
+			+ '<p style="color:red;">error msg: ' + msg + '</p>');
 	}
-
-	/*$.getScript("http://localhost:37925/?callback=testcallback",
-		function(data) {
-			console.log('load script done');
-		}
-	);*/
 </script>
 
 </body>

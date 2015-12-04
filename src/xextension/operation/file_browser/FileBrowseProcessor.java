@@ -33,12 +33,12 @@ public class FileBrowseProcessor extends Processor {
 	public FileBrowseProcessor() {
 	}
 
-	public void doGet(Request request, Response response) {
+	public void doGet(Request request, Response response) throws Exception {
 		this.doPost(request, response);
 	}
 
 	// TODO need a synchronization?
-	public void doPost(Request request, Response response) {
+	public void doPost(Request request, Response response) throws Exception {
 		String id = request.getParameter(Configurations.REQUEST_ID);
 		OperationResult result;
 

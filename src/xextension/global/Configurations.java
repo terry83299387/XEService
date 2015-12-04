@@ -46,6 +46,7 @@ public final class Configurations {
 	public static final int		FILE_TRANSFER			= 3;
 	public static final int		RUN_APP						= 4;
 	public static final int		VERSION_INFO			= 5;
+	public static final int		REMOTE_DESKTOP		= 6;
 
 	// return codes
 	public static final int		OPERATION_SUCCEED					= 0;

@@ -23,11 +23,11 @@ public class EchoBack extends Processor {
 	public EchoBack() {
 	}
 
-	public void doGet(Request request, Response response) {
+	public void doGet(Request request, Response response) throws Exception {
 		this.doPost(request, response);
 	}
 
-	public void doPost(Request request, Response response) {
+	public void doPost(Request request, Response response) throws Exception {
 		OperationResult result = new OperationResult(request);
 		result.setReturnCode(Configurations.OPERATION_SUCCEED);
 		String respId = IDGenerator.nextId(this.getClass());

@@ -13,6 +13,8 @@ import xextension.operation.Processor;
 import xextension.operation.UnknownOperatorException;
 import xextension.operation.VersionInfo;
 import xextension.operation.file_browser.FileBrowseProcessor;
+import xextension.operation.file_transfer.FileTransfer;
+import xextension.operation.remote_desktop.RemoteDesktop;
 import xextension.operation.run_app.RunApp;
 
 /**
@@ -66,18 +68,21 @@ public class ServiceDispatcher {
 	public Processor getProcessor(int operator) throws UnknownOperatorException {
 		Processor processor = null;
 		switch (operator) {
-			case Configurations.VERSION_INFO:
-				processor = new VersionInfo();
-				break;
 			case Configurations.FILE_BROWSER:
 				processor = new FileBrowseProcessor();
+				break;
+			case Configurations.FILE_TRANSFER:
+				processor = new FileTransfer();
+				break;
+			case Configurations.VERSION_INFO:
+				processor = new VersionInfo();
 				break;
 			case Configurations.RUN_APP:
 				processor = new RunApp();
 				break;
-			// case Configurations.FILE_TRANSFER: // TODO
-			// processor = new FileTransferProcessor();
-			// break;
+			case Configurations.REMOTE_DESKTOP:
+				processor = new RemoteDesktop();
+				break;
 			case Configurations.ECHO_BACK:
 				processor = new EchoBack();
 				break;

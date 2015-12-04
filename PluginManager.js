@@ -6,10 +6,21 @@
  * currentUserName : file transfer needs this global variable
  * language : file transfer needs this global variable
  * 
+ * All APIs include callback and scope parameters:
+ * 
+ * (1) callback: (function, optional) callback being called while request either succeeds or fails.
+ * 
+ * 		following parameters will be passed through when callback is called:
+ *
+ * 			success: (boolean) true if request succeeds, false does not
+ * 			data: (object) responsed data
+ * 			ex: (string) error message, if error occurs when send request.
+ * 
+ * (2) scope: (object, optional) the scope of callback call (callback's "this" object)
+ * 
  * @type PluginManager
  * @author qiaomingkui
  */
-
 var PluginManager = (function() {
 	var NAME  = 'XeXtension',
 			PORTS = [ 20052, 26126, 22862 ],
@@ -18,7 +29,8 @@ var PluginManager = (function() {
 				fileBrowser            : 2,
 				fileTransfer           : 3,
 				runApp                 : 4,
-				versionInfo            : 5
+				versionInfo            : 5,
+				remoteDesktop          : 6
 			},
 			RETURN_CODES = {
 				OPERATION_SUCCEED      : 0,
@@ -69,7 +81,12 @@ var PluginManager = (function() {
 	}
 
 	// (private)
-	function sendRequest(op, id, params, callback, scope) {
+	/*
+	 * @param id (optional) request id
+	 * 		If it is a continuous request (e.g.: query uploading progress),
+	 * 		the request id will be set to the response id of last request.
+	 */
+	function sendRequest(op, id, params, callback) {
 		var data = {
 			op : op
 		};
@@ -94,9 +111,7 @@ var PluginManager = (function() {
 			 * 
 			 * Note: in ie8, jquery will do those clean jobs when request failed
 			 */
-			if (_isFunction(callback)) {
-				callback.call(scope, null, status, jqXHR, ex);
-			} 
+			callback(null, status, jqXHR, ex);
 		});
 
 		// in chrome and some other browsers, if service is down, the jqXHR's fail callback won't be called
@@ -127,12 +142,20 @@ var PluginManager = (function() {
 			}
 
 			// 
+			callback(null, 'error', jqXHR, {
+				message: 'error occurs when send request'
+			});
+		};
+	}
+
+	// (private) generate default request handler
+	function _genDefReqHandler(callback, scope) {
+		return function(resp, status, jqXHR, ex) {
 			if (_isFunction(callback)) {
-				callback.call(scope, null, 'error', jqXHR, {
-					description: 'error occurs when send request',
-					message: 'error occurs when send request',
-					name: 'Error'
-				});
+				var success = resp && resp.returnCode === RETURN_CODES.OPERATION_SUCCEED;
+				resp = resp || {};
+				var errorMsg = resp.exception || (ex && ex.message) || 'unknown';
+				callback.call(scope, success, resp.extraData, errorMsg);
 			}
 		};
 	}
@@ -147,9 +170,7 @@ var PluginManager = (function() {
 		if (!_init) {
 			if (_isFunction(callback)) {
 				callback.call(scope, null, 'error', null, {
-					description : 'PluginManager has not been initialized',
-					message     : 'PluginManager has not been initialized',
-					name        : 'Error'
+					message     : 'PluginManager has not been initialized'
 				});
 			}
 			return false;
@@ -168,117 +189,53 @@ var PluginManager = (function() {
 	/**
 	 * get version info of XeXtension. 
 	 * 
-	 * @param callback (optional) callback being called while request either succeeds or fails.
-	 * 
-	 * 		callback has following parameters:
-	 * 
-	 * 			resp: response data, which is a json object and contains the following attributes:
-	 * 					operator  : the operator of version info request
-	 * 					reqId     : always null
-	 * 					respId    : the response id
-	 * 					returnCode: returnCode (0 succeeds, or else failed)
-	 *          exception : exception message (if any)
-	 *          extraData : version detail info, which consists of:
-	 *          	name    : XeXtension's name
-	 *          	version : current version of XeXtension
-	 *          	copyright: copyright info
-	 * 
-	 * 			status: the final status of this request (String)
-	 * 			jqXHR: jqXHR object
-	 * 			ex: the exception object, if error occurs when send request.
-	 * 					It contains a description, a message and a name attributes.
-	 * 					(Note: such error occures during sending and receiving requests (e.g.: network exception),
-	 * 					not one in normal response)
-	 * 
-	 * @param scope (optional) the scope of callback call (callback's "this" object)
-	 * 
+	 * @param callback
+	 * @param scope
 	 */
 	function versionInfo(callback, scope) {
 		if (!_checkInit(callback, scope)) return;
 
-		sendRequest(OPERATORS.versionInfo, null, null, callback, scope);
+		sendRequest(OPERATORS.versionInfo, null, null, _genDefReqHandler(callback, scope));
+		// TODO return an object
 	}
 
 	/**
 	 * just for testing and debugging. 
 	 * 
-	 * @param id (optional) request id
-	 * 		If it is a continuous request (e.g.: query uploading progress),
-	 * 		the request id will be set to the response id of last request.
-	 * 
 	 * @param params (optional) extra request parameters
-	 * 
-	 * @param callback (optional) callback being called while request either succeeds or fails.
-	 * 
-	 * 		callback has following parameters:
-	 * 
-	 * 			resp: response data, which is a json object and contains the following attributes:
-	 * 					operator  : the operator of version info request
-	 * 					reqId     : always null
-	 * 					respId    : the response id
-	 * 					returnCode: returnCode (0 succeeds, or else failed)
-	 *          exception : exception message (if any)
-	 *          extraData : TODO
-	 * 
-	 * 			status: the final status of this request (String)
-	 * 			jqXHR: jqXHR object
-	 * 			ex: the exception object, if error occurs when send request.
-	 * 					It contains a description, a message and a name attributes.
-	 * 					(Note: such error occures during sending and receiving requests (e.g.: network exception),
-	 * 					not one in normal response)
-	 * 
-	 * @param scope (optional) the scope of callback call (callback's "this" object)
-	 * 
+	 * @param callback
+	 * @param scope
 	 */
-	function echoBack(id, params, callback, scope) {
+	function echoBack(params, callback, scope) {
 		if (!_checkInit(callback, scope)) return;
 
-		sendRequest(OPERATORS.echoBack, id, params, callback, scope);
+		sendRequest(OPERATORS.echoBack, null, params, function(resp, status, jqXHR, ex) {
+			if (_isFunction(callback)) {
+				var success = resp && resp.returnCode === RETURN_CODES.OPERATION_SUCCEED;
+				resp = resp || {};
+				var errorMsg = resp.exception || (ex && ex.message) || 'unknown';
+				callback.call(scope, success, resp, errorMsg);
+			}
+		});
+		// TODO return an object
 	}
 
 	/**
 	 * show a file browser dialog to let user choose local files. 
-	 * 
-	 * @param id (optional) request id
-	 * 		If it is a continuous request (e.g.: query uploading progress),
-	 * 		the request id will be set to the response id of last request.
 	 *  
 	 * @param params (optional) extra request parameters
-	 * 
-	 * @param callback (optional) callback being called while request either succeeds or fails.
-	 * 
-	 * 		callback has following parameters:
-	 * 
-	 * 			resp: response data, which is a json object and contains the following attributes:
-	 * 					operator  : the operator of version info request
-	 * 					reqId     : always null
-	 * 					respId    : the response id
-	 * 					returnCode: returnCode (0 succeeds, or else failed)
-	 *          exception : exception message (if any)
-	 *          extraData : TODO
-	 * 
-	 * 			status: the final status of this request (String)
-	 * 			jqXHR: jqXHR object
-	 * 			ex: the exception object, if error occurs when send request.
-	 * 					It contains a description, a message and a name attributes.
-	 * 					(Note: such error occures during sending and receiving requests (e.g.: network exception),
-	 * 					not one in normal response)
-	 * 
-	 * @param scope (optional) the scope of callback call (callback's "this" object)
-	 * 
+	 * @param callback
+	 * @param scope
 	 */
-	function fileBrowser(id, params, callback, scope) {
+	function fileBrowser(params, callback, scope) {
 		if (!_checkInit(callback, scope)) return;
-
+		
 		function _filesSelected(resp, status, jqXHR, ex) {
-			if (!resp || ex) {
+			if (!resp) {
 				if (_isFunction(callback)) {
-					ex = ex || {
-						description: 'error occurs when send filebrowser request',
-						message: 'error occurs when send filebrowser request',
-						name: 'filebrowser error'
-					};
-					callback.call(scope, resp, status, jqXHR, ex);
+					resp = resp || {};
+					errorMsg = resp.exception || (ex && ex.message) || 'error occurs when send filebrowser request';
+					callback.call(scope, false, resp.extraData, errorMsg);
 				}
 				return;
 			}
@@ -288,7 +245,11 @@ var PluginManager = (function() {
 			switch (returnCode) {
 				case RETURN_CODES.OPERATION_SUCCEED:
 				case RETURN_CODES.UNKNOWN_ID:
-					callback.call(scope, resp, status, jqXHR);
+					if (_isFunction(callback)) {
+						var success = resp.returnCode === RETURN_CODES.OPERATION_SUCCEED;
+						var errorMsg = resp.exception || (ex && ex.message) || 'unknown';
+						callback.call(scope, success, resp.extraData, errorMsg);
+					}
 					break;
 				case RETURN_CODES.OPERATION_UNCOMPLETED:
 					setTimeout(function() {
@@ -303,91 +264,79 @@ var PluginManager = (function() {
 			}
 		}
 
-		sendRequest(OPERATORS.fileBrowser, id, params, _filesSelected);
+		sendRequest(OPERATORS.fileBrowser, null, params, _filesSelected);
+		// TODO return an object
 	}
 
 	/**
-	 * transfer files between local and clusters (upload and download). 
-	 * 
-	 * @param id (optional) request id
-	 * 		If it is a continuous request (e.g.: query uploading progress),
-	 * 		the request id will be set to the response id of last request.
+	 * TODO transfer files between local and clusters (upload and download). 
 	 *  
 	 * @param params (optional) extra request parameters
-	 * 
-	 * @param callback (optional) callback being called while request either succeeds or fails.
-	 * 
-	 * 		callback has following parameters:
-	 * 
-	 * 			resp: response data, which is a json object and contains the following attributes:
-	 * 					operator  : the operator of version info request
-	 * 					reqId     : always null
-	 * 					respId    : the response id
-	 * 					returnCode: returnCode (0 succeeds, or else failed)
-	 *          exception : exception message (if any)
-	 *          extraData : TODO
-	 * 
-	 * 			status: the final status of this request (String)
-	 * 			jqXHR: jqXHR object
-	 * 			ex: the exception object, if error occurs when send request.
-	 * 					It contains a description, a message and a name attributes.
-	 * 					(Note: such error occures during sending and receiving requests (e.g.: network exception),
-	 * 					not one in normal response)
-	 * 
-	 * @param scope (optional) the scope of callback call (callback's "this" object)
-	 * 
+	 * @param callback
+	 * @param scope
 	 */
-	function fileTransfer(id, params, callback, scope) {
+	function fileTransfer(params, callback, scope) {
 		if (!_checkInit(callback, scope)) return;
 
-		// TODO
+		var respId;
+		function genRequestHandler(callback, scope) {
+			return function(resp, status, jqXHR, ex) {
+				var success = resp && resp.returnCode === RETURN_CODES.OPERATION_SUCCEED;
+				resp = resp || {};
+				respId = resp.respId;
+				if (_isFunction(callback)) {
+					var errorMsg = resp.exception || (ex && ex.message) || 'unknown';
+					callback.call(scope, success, resp.extraData, errorMsg);
+				}
+			}
+		};
+		sendRequest(OPERATORS.fileTransfer, null, params, genRequestHandler(callback, scope));
+
+		// return an deferred object
+		var deferred = $.Deferred();
+		deferred.progress = function(callback, scope) {
+			if (!respId) {
+				if (_isFunction(callback)) {
+					callback.call(scope, false, null, 'transfer does not start');
+				}
+			} else {
+				sendRequest(OPERATORS.fileTransfer, respId, null, genRequestHandler(callback, scope));
+			}
+		};
+
+		return deferred;
 	}
 
 	/**
 	 * start and run a local program. 
-	 * 
-	 * @param id (optional) request id
-	 * 		If it is a continuous request (e.g.: query uploading progress),
-	 * 		the request id will be set to the response id of last request.
 	 *  
 	 * @param params (optional) extra request parameters
-	 * 
-	 * @param callback (optional) callback being called while request either succeeds or fails.
-	 * 
-	 * 		callback has following parameters:
-	 * 
-	 * 			resp: response data, which is a json object and contains the following attributes:
-	 * 					operator  : the operator of version info request
-	 * 					reqId     : always null
-	 * 					respId    : the response id
-	 * 					returnCode: returnCode (0 succeeds, or else failed)
-	 *          exception : exception message (if any)
-	 *          extraData : TODO
-	 * 
-	 * 			status: the final status of this request (String)
-	 * 			jqXHR: jqXHR object
-	 * 			ex: the exception object, if error occurs when send request.
-	 * 					It contains a description, a message and a name attributes.
-	 * 					(Note: such error occures during sending and receiving requests (e.g.: network exception),
-	 * 					not one in normal response)
-	 * 
-	 * @param scope (optional) the scope of callback call (callback's "this" object)
-	 * 
+	 * @param callback
+	 * @param scope
 	 */
-	function runApp(id, params, callback, scope) {
+	function runApp(params, callback, scope) {
 		if (!_checkInit(callback, scope)) return;
 
-		sendRequest(OPERATORS.runApp, id, params, callback, scope);
+		sendRequest(OPERATORS.runApp, null, params, _genDefReqHandler(callback, scope));
+		// TODO return an object
+	}
+
+	function remoteDesktop(params, callback, scope) {
+		if (!_checkInit(callback, scope)) return;
+
+		sendRequest(OPERATORS.remoteDesktop, params, _genDefReqHandler(callback, scope));
+		// TODO return an object
 	}
 
 	init();
 
 	return {
-		isInit       : isInit,
-		versionInfo  : versionInfo,
-		echoBack     : echoBack,
-		fileBrowser  : fileBrowser,
-		fileTransfer : fileTransfer,
-		runApp       : runApp
+		isInit          : isInit,
+		versionInfo     : versionInfo,
+		echoBack        : echoBack,
+		fileBrowser     : fileBrowser,
+		fileTransfer    : fileTransfer,
+		runApp          : runApp,
+		remoteDesktop   : remoteDesktop
 	};
 })();

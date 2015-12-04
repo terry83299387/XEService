@@ -3,8 +3,6 @@
  */
 package xextension.http;
 
-import static xextension.global.Configurations.DEFAULT_ENCODING;
-
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -53,7 +51,7 @@ public class Response {
 	public static Response getResponse(OutputStream outputStream) {
 		Response response = new Response();
 		try {
-			response.out = new OutputStreamWriter(new BufferedOutputStream(outputStream), DEFAULT_ENCODING);
+			response.out = new OutputStreamWriter(new BufferedOutputStream(outputStream), Configurations.DEFAULT_ENCODING);
 		} catch (UnsupportedEncodingException e) {
 			// ignore, this should never gonna happen
 		}
@@ -95,7 +93,7 @@ public class Response {
 				content = new StringBuilder(jsonCallback).append(LEFT_PARENTHESE).append(content).append(RIGHT_PARENTHESE);
 			}
 			// content length. Note: it should be final encoded byte-length, not char-length
-			int len = content.toString().getBytes(DEFAULT_ENCODING).length;
+			int len = content.toString().getBytes(Configurations.DEFAULT_ENCODING).length;
 			this.headers.put(CONTENT_LENGTH, "" + len);
 
 			Iterator<Entry<String, String>> headers = this.headers.entrySet().iterator();

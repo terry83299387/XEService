@@ -26,11 +26,11 @@ public class RunApp extends Processor {
 	public RunApp() {
 	}
 
-	public void doGet(Request request, Response response) {
+	public void doGet(Request request, Response response) throws Exception {
 		this.doPost(request, response);
 	}
 
-	public void doPost(Request request, Response response) {
+	public void doPost(Request request, Response response) throws Exception {
 		// kitty startup parameters:
 		// [-l username] [-pw password] [-P port] server [-cmd "cd xxxx"]
 		String appName = request.getParameter("appName");

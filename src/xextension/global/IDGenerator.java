@@ -3,8 +3,6 @@
  */
 package xextension.global;
 
-import xextension.operation.Processor;
-
 /**
  * @author QiaoMingkui
  *
@@ -21,7 +19,7 @@ public class IDGenerator {
 	 * @param clazz
 	 * @return
 	 */
-	public static String nextId(Class<? extends Processor> clazz) {
+	public static String nextId(Class<?> clazz) {
 		// class name, 4 digits
 		String clazzFlag = Integer.toString(clazz.getName().hashCode(), 16);
 		clazzFlag = tailString(clazzFlag, 4, '0');

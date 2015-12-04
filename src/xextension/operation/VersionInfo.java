@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 
 import xextension.global.ConfigHelper;
 import xextension.global.Configurations;
+import xextension.global.IDGenerator;
 import xextension.http.Request;
 import xextension.http.Response;
 
@@ -29,15 +30,17 @@ public class VersionInfo extends Processor {
 	private static final String COLON				= ":";
 	private static final String SLASH				= "/";
 
-	public void doGet(Request request, Response response) {
+	public void doGet(Request request, Response response) throws Exception {
 		this.doPost(request, response);
 	}
 
-	public void doPost(Request request, Response response) {
+	public void doPost(Request request, Response response) throws Exception {
 		storeXfinityServer(request);
 
 		OperationResult result = new OperationResult(request);
 		result.setReturnCode(Configurations.OPERATION_SUCCEED);
+		String respId = IDGenerator.nextId(this.getClass());
+		result.setResponseId(respId);
 		result.setExtraData(NAME, Configurations.NAME);
 		result.setExtraData(VERSION, Configurations.VERSION);
 		result.setExtraData(COPYRIGHT, Configurations.COPYRIGHT);

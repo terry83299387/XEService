@@ -5,17 +5,25 @@
 	<property name="filebrowserJarName" value="filebrowser"/>
 	<property name="runappJarName" value="runapp"/>
 	<property name="filetransferJarName" value="filetransfer"/>
+	<property name="remotedesktopJarName" value="remotedesktop"/>
 
 	<property name="output.dir" value="exports" />
 	<property name="output.bin.dir" value="${output.dir}/bin" />
 	<property name="output.libs.dir" value="${output.dir}/libs" />
+	<property name="output.extlibs.dir" value="${output.dir}/extlibs" />
 	<property name="output.res.dir" value="${output.dir}/resources" />
 
 	<property name="input.src" value="src" />
 	<property name="input.res.dir" value="resources" />
 	<property name="input.scripts.dir" value="scripts" />
 	<property name="input.libs.dir" value="libs" />
+	<property name="input.extlibs.dir" value="extlibs" />
+	<!--
 	<property name="input.libs.jars" value="json.jar,log4j-api-2.4.1.jar,log4j-core-2.4.1.jar" />
+	-->
+	<property name="input.libs.jars"
+			value="json.jar,log4j-api-2.4.1.jar,
+			log4j-core-2.4.1.jar,filetransfer0.jar,remotedesktop0.jar" />
 
 	<path id="input.libs.clspath" >
 		<fileset dir="${input.libs.dir}" includes="${input.libs.jars}" />
@@ -35,51 +43,57 @@
 	</target>
 
 	<target name="complie" depends="init">
-		<javac srcdir="${input.src}" destdir="${output.bin.dir}"
+		<javac srcdir="${input.src}" destdir="${output.bin.dir}" nowarn="true"
 				classpathref="input.libs.clspath" debug="true" optimize="on" source="1.6"
-				encoding="UTF-8" failonerror="false" errorProperty="compileFailed">
+				encoding="UTF-8" failonerror="true" errorProperty="compileFailed">
 		</javac>
 	</target>
 
 	<target name="output" depends="complie">
 		<!-- xextension.jar -->
 		<mkdir dir="${output.bin.dir}/${xextensionJarName}_cls" />
-		<copydir dest="${output.bin.dir}/${xextensionJarName}_cls" src="${output.bin.dir}/">
-			<include name="xextension/Main.class"/>
-			<include name="xextension/autoupdate/**"/>
-			<include name="xextension/global/**"/>
-			<include name="xextension/http/**"/>
-			<include name="xextension/operation/*.class"/>
-			<include name="xextension/service/**"/>
-		</copydir>
+		<copy todir="${output.bin.dir}/${xextensionJarName}_cls">
+			<fileset dir="${output.bin.dir}" includes="xextension/Main.class,xextension/autoupdate/**,xextension/global/**,xextension/http/**,xextension/operation/*.class,xextension/service/**">
+			</fileset>
+		</copy>
 		<jar destfile="${output.libs.dir}/${xextensionJarName}.jar" basedir="${output.bin.dir}/${xextensionJarName}_cls">
 		</jar>
 
 		<!-- filebrowser.jar -->
 		<mkdir dir="${output.bin.dir}/${filebrowserJarName}_cls/" />
-		<copydir dest="${output.bin.dir}/${filebrowserJarName}_cls" src="${output.bin.dir}/">
-			<include name="xextension/operation/file_browser/**"/>
-		</copydir>
+		<copy todir="${output.bin.dir}/${filebrowserJarName}_cls">
+			<fileset dir="${output.bin.dir}" includes="xextension/operation/file_browser/**">
+			</fileset>
+		</copy>
 		<jar destfile="${output.libs.dir}/${filebrowserJarName}.jar" basedir="${output.bin.dir}/${filebrowserJarName}_cls">
 		</jar>
 
 		<!-- runapp.jar -->
 		<mkdir dir="${output.bin.dir}/${runappJarName}_cls/" />
-		<copydir dest="${output.bin.dir}/${runappJarName}_cls" src="${output.bin.dir}/">
-			<include name="xextension/operation/run_app/**"/>
-		</copydir>
+		<copy todir="${output.bin.dir}/${runappJarName}_cls">
+			<fileset dir="${output.bin.dir}" includes="xextension/operation/run_app/**">
+			</fileset>
+		</copy>
 		<jar destfile="${output.libs.dir}/${runappJarName}.jar" basedir="${output.bin.dir}/${runappJarName}_cls">
 		</jar>
 
 		<!-- filetransfer.jar -->
-		<!--
 		<mkdir dir="${output.bin.dir}/${filetransferJarName}_cls/" />
-		<copydir dest="${output.bin.dir}/${filetransferJarName}_cls" src="${output.bin.dir}/">
-			<include name="xextension/operation/file_transfer/**"/>
-		</copydir>
+		<copy todir="${output.bin.dir}/${filetransferJarName}_cls">
+			<fileset dir="${output.bin.dir}" includes="xextension/operation/file_transfer/**">
+			</fileset>
+		</copy>
 		<jar destfile="${output.libs.dir}/${filetransferJarName}.jar" basedir="${output.bin.dir}/${filetransferJarName}_cls">
 		</jar>
-		-->
+
+		<!-- remotedesktop.jar -->
+		<mkdir dir="${output.bin.dir}/${remotedesktopJarName}_cls/" />
+		<copy todir="${output.bin.dir}/${remotedesktopJarName}_cls">
+			<fileset dir="${output.bin.dir}" includes="xextension/operation/remote_desktop/**">
+			</fileset>
+		</copy>
+		<jar destfile="${output.libs.dir}/${remotedesktopJarName}.jar" basedir="${output.bin.dir}/${remotedesktopJarName}_cls">
+		</jar>
 
 		<!-- resources -->
 		<copy todir="${output.res.dir}">
@@ -96,6 +110,12 @@
 		<!-- third part libs -->
 		<copy todir="${output.libs.dir}">
 			<fileset dir="${input.libs.dir}" includes="${input.libs.jars}">
+			</fileset>
+		</copy>
+
+		<!-- ext libs -->
+		<copy todir="${output.extlibs.dir}">
+			<fileset dir="${input.extlibs.dir}" includes="**">
 			</fileset>
 		</copy>
 
