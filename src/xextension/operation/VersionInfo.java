@@ -21,14 +21,14 @@ import xextension.http.Response;
 public class VersionInfo extends Processor {
 	private static final Logger logger = LogManager.getLogger(VersionInfo.class);
 
-	public static final String NAME					= "name";
-	public static final String VERSION			= "version";
-	public static final String COPYRIGHT		= "copyright";
+	public  static final String NAME					= "name";
+	private static final String VERSION				= "version";
+	private static final String COPYRIGHT			= "copyright";
 
-	private static final String REFERER			= "Referer";
+	private static final String REFERER				= "Referer";
 	private static final String PROTOCOL_SEPARATOR	= "://";
-	private static final String COLON				= ":";
-	private static final String SLASH				= "/";
+	private static final String COLON					= ":";
+	private static final String SLASH					= "/";
 
 	public void doGet(Request request, Response response) throws Exception {
 		this.doPost(request, response);

@@ -3,11 +3,12 @@ package xextension.operation.file_browser;
 import java.io.File;
 
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class LocalFileBrowser {
-	private _FileChooser		fileChooser			= new _FileChooser();
+	private _FileChooser		fileChooser = new _FileChooser();
 
 	public void chooseFile() {
 		fileChooser.start();
@@ -24,46 +25,61 @@ public class LocalFileBrowser {
 		return fileChooser.selectedFiles;
 	}
 
+	public void closeFileChooser() {
+		if (fileChooser.fileChooser != null) {
+			fileChooser.fileChooser.cancelSelection();
+		}
+	}
+
+	/**
+	 * Open a local FileChooser dialog which runs in an individual thread.
+	 * 
+	 * @author QiaoMingkui
+	 *
+	 */
 	private static class _FileChooser extends Thread {
-		private boolean			multiSelection;
-		private int					fileSelectionMode	= FileBrowseProcessor.FILES_ONLY;
-		private String			defaultDirectory;
-		private FileFilter	fileFilter;
-		private boolean			selected;
-		private String			selectedFiles;
+		private boolean				multiSelection;
+		private int						fileSelectionMode;
+		private String				defaultDirectory;
+		private FileFilter		fileFilter;
+		private boolean				selected;
+		private String				selectedFiles;
+		private JFileChooser	fileChooser;
 
 		public void run() {
-			JFileChooser fileChooser = new JFileChooser();
+			fileChooser = new JFileChooser();
 
 			fileChooser.setMultiSelectionEnabled(multiSelection);
 			fileChooser.setFileSelectionMode(fileSelectionMode);
 			if (defaultDirectory != null && defaultDirectory.length() != 0) {
 				fileChooser.setCurrentDirectory(new File(defaultDirectory));
 			}
-
 			if (fileFilter != null) {
 				fileChooser.addChoosableFileFilter(fileFilter);
 			}
 
-			int button = fileChooser.showOpenDialog(null);
-
+			// let file chooser always be top
+			JFrame frame = new JFrame("");
+			frame.setAlwaysOnTop(true);
+			frame.setState(JFrame.ICONIFIED);
+			frame.setVisible(true);
+			int button = fileChooser.showOpenDialog(frame);
 			selected = true;
-			if (button != JFileChooser.APPROVE_OPTION) {
-				return;
-			}
-
-			if (!multiSelection) {
-				selectedFiles = fileChooser.getSelectedFile().getAbsolutePath();
-			} else {
-				StringBuilder sb = new StringBuilder(1024);
-				File[] files = fileChooser.getSelectedFiles();
-				for (File file : files) {
-					if (sb.length() > 0) {
-						sb.append(FileBrowseProcessor.FILE_SEPARATOR);
+			frame.dispose(); // dispose frame window
+			if (button == JFileChooser.APPROVE_OPTION) {
+				if (multiSelection) {
+					StringBuilder sb = new StringBuilder(1024);
+					File[] files = fileChooser.getSelectedFiles();
+					for (File file : files) {
+						if (sb.length() > 0) {
+							sb.append(FileBrowser.FILE_SEPARATOR);
+						}
+						sb.append(file.getAbsolutePath());
 					}
-					sb.append(file.getAbsolutePath());
+					selectedFiles = sb.toString();
+				} else {
+					selectedFiles = fileChooser.getSelectedFile().getAbsolutePath();
 				}
-				selectedFiles = sb.toString();
 			}
 		}
 	}
@@ -95,8 +111,8 @@ public class LocalFileBrowser {
 	 *        the fileSelectionMode to set
 	 */
 	public void setFileSelectionMode(int fileSelectionMode) {
-		if (fileSelectionMode == FileBrowseProcessor.FILES_ONLY || fileSelectionMode == FileBrowseProcessor.DIRECTORIES_ONLY
-				|| fileSelectionMode == FileBrowseProcessor.FILES_DIRECTORIES) {
+		if (fileSelectionMode == FileBrowser.FILES_ONLY || fileSelectionMode == FileBrowser.DIRECTORIES_ONLY
+				|| fileSelectionMode == FileBrowser.FILES_DIRECTORIES) {
 			fileChooser.fileSelectionMode = fileSelectionMode;
 		}
 	}

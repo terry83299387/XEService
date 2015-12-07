@@ -12,7 +12,7 @@ import xextension.operation.EchoBack;
 import xextension.operation.Processor;
 import xextension.operation.UnknownOperatorException;
 import xextension.operation.VersionInfo;
-import xextension.operation.file_browser.FileBrowseProcessor;
+import xextension.operation.file_browser.FileBrowser;
 import xextension.operation.file_transfer.FileTransfer;
 import xextension.operation.remote_desktop.RemoteDesktop;
 import xextension.operation.run_app.RunApp;
@@ -69,7 +69,7 @@ public class ServiceDispatcher {
 		Processor processor = null;
 		switch (operator) {
 			case Configurations.FILE_BROWSER:
-				processor = new FileBrowseProcessor();
+				processor = new FileBrowser();
 				break;
 			case Configurations.FILE_TRANSFER:
 				processor = new FileTransfer();

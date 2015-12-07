@@ -196,7 +196,6 @@ var PluginManager = (function() {
 		if (!_checkInit(callback, scope)) return;
 
 		sendRequest(OPERATORS.versionInfo, null, null, _genDefReqHandler(callback, scope));
-		// TODO return an object
 	}
 
 	/**
@@ -217,7 +216,6 @@ var PluginManager = (function() {
 				callback.call(scope, success, resp, errorMsg);
 			}
 		});
-		// TODO return an object
 	}
 
 	/**
@@ -229,9 +227,11 @@ var PluginManager = (function() {
 	 */
 	function fileBrowser(params, callback, scope) {
 		if (!_checkInit(callback, scope)) return;
-		
+
+		var respId;
 		function _filesSelected(resp, status, jqXHR, ex) {
 			if (!resp) {
+				respId = null;
 				if (_isFunction(callback)) {
 					resp = resp || {};
 					errorMsg = resp.exception || (ex && ex.message) || 'error occurs when send filebrowser request';
@@ -240,7 +240,7 @@ var PluginManager = (function() {
 				return;
 			}
 
-			var respId = resp.respId;
+			respId = resp.respId;
 			var returnCode = resp.returnCode;
 			switch (returnCode) {
 				case RETURN_CODES.OPERATION_SUCCEED:
@@ -265,11 +265,26 @@ var PluginManager = (function() {
 		}
 
 		sendRequest(OPERATORS.fileBrowser, null, params, _filesSelected);
-		// TODO return an object
+
+		// return an deferred object
+		var deferred = $.Deferred();
+		deferred.cancel = function(callback, scope) {
+			if (!respId) {
+				if (_isFunction(callback)) {
+					callback.call(scope, false, null, 'browser does not open');
+				}
+			} else {
+				sendRequest(OPERATORS.fileBrowser, respId, {
+					type : 'cancel'
+				}, _genDefReqHandler(callback, scope));
+			}
+		};
+
+		return deferred;
 	}
 
 	/**
-	 * TODO transfer files between local and clusters (upload and download). 
+	 * transfer files between local and clusters (upload and download). 
 	 *  
 	 * @param params (optional) extra request parameters
 	 * @param callback

@@ -14,11 +14,11 @@ import xextension.http.Response;
  * 
  */
 public class EchoBack extends Processor {
-	public static final String PARAMETERS		= "parameters";
-	public static final String HEADERS			= "headers";
-	public static final String VERSION			= "version";
-	public static final String URL					= "url";
-	public static final String METHOD				= "method";
+	private static final String PARAMETERS		= "parameters";
+	private static final String HEADERS				= "headers";
+	private static final String VERSION				= "version";
+	private static final String URL						= "url";
+	private static final String METHOD				= "method";
 
 	public EchoBack() {
 	}

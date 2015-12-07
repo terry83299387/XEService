@@ -17,14 +17,7 @@ import xextension.operation.Processor;
  * 
  */
 public class RunApp extends Processor {
-	public static final String PARAMETERS		= "parameters";
-	public static final String HEADERS			= "headers";
-	public static final String VERSION			= "version";
-	public static final String URL					= "url";
-	public static final String METHOD				= "method";
-
-	public RunApp() {
-	}
+	private static final String KITTY = "kitty.exe";
 
 	public void doGet(Request request, Response response) throws Exception {
 		this.doPost(request, response);
@@ -56,7 +49,14 @@ public class RunApp extends Processor {
 			throw new IllegalAccessError("app does not exist");
 		}
 
-		String args = request.getParameter("args");
+		// get args
+		String args = null;
+		if (KITTY.equals(appName)) {
+			args = getKittyArgs(request);
+		} else {
+			args = otherAppArgs(request);
+		}
+
 		String cmd = path + (args == null ? "" : " " + args);
 
 		try {
@@ -73,6 +73,15 @@ public class RunApp extends Processor {
 		String ret = result.toJsonString();
 		response.print(ret);
 		response.flush();
+	}
+
+	private String getKittyArgs(Request request) {
+		// TODO
+		return request.getParameter("args");
+	}
+
+	private String otherAppArgs(Request request) {
+		return request.getParameter("args");
 	}
 
 }

@@ -15,6 +15,7 @@
 <button id="echoback">Echo Back</button>&nbsp;&nbsp;
 <button id="filebrowser">File Browser</button>&nbsp;&nbsp;
 <button id="filebrowser_multi">File Browser (Multiple)</button>&nbsp;&nbsp;
+<button id="close_filebrowser">close File Browser</button>&nbsp;&nbsp;
 <button id="filetransfer">File Transfer</button>&nbsp;&nbsp;
 <button id="runapp">Run App</button>&nbsp;&nbsp;
 <button id="remotedesktop">Remote Desktop</button>&nbsp;&nbsp;
@@ -35,6 +36,8 @@
 		UNSUPPORT_OPERATION    : 104
 	};
 
+	var fileBrowser;
+
 	$('#versioninfo').on('click', function() {
 		PluginManager.versionInfo(showVersionInfo);
 	});
@@ -44,16 +47,23 @@
 	});
 
 	$('#filebrowser').on('click', function() {
-		PluginManager.fileBrowser(null, getSelectedFile);
+		fileBrowser = PluginManager.fileBrowser(null, getSelectedFile);
 	});
 
 	$('#filebrowser_multi').on('click', function() {
-		PluginManager.fileBrowser(
+		fileBrowser = PluginManager.fileBrowser(
 			{
 				multi : true,
 				defaultDir : 'd:\\'
 			},
 			getSelectedFile);
+	});
+
+	$('#close_filebrowser').on('click', function() {
+		if (fileBrowser) {
+			fileBrowser.cancel();
+			fileBrowser = null;
+		}
 	});
 
 	$('#filetransfer').on('click', function() {
@@ -130,6 +140,8 @@
 	}
 
 	function getSelectedFile(success, data, ex) {
+		fileBrowser = null;
+
 		if (!success) {
 			showError('<p style="color:red;">操作无法完成，原因：<br>' + ex + '</p>');
 			return;
