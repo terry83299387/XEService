@@ -24,8 +24,6 @@ public class RunApp extends Processor {
 	}
 
 	public void doPost(Request request, Response response) throws Exception {
-		// kitty startup parameters:
-		// [-l username] [-pw password] [-P port] server [-cmd "cd xxxx"]
 		String appName = request.getParameter("appName");
 		if (appName == null || appName.trim().length() == 0) {
 			throw new IllegalArgumentException("app name is unspecified");
@@ -76,8 +74,34 @@ public class RunApp extends Processor {
 	}
 
 	private String getKittyArgs(Request request) {
-		// TODO
-		return request.getParameter("args");
+		String clientKey = request.getParameter("clientKey");
+		String server    = request.getParameter("server");
+		String port      = request.getParameter("port");
+		String userName  = request.getParameter("userName");
+		String password  = request.getParameter("password");
+		String initCd    = request.getParameter("initCd");
+
+		if (clientKey != null && clientKey.trim().length() > 0) {
+			DesDecrypt decrypt = new DesDecrypt();
+			try {
+				userName = decrypt.decrypt(userName, clientKey);
+				password = decrypt.decrypt(password, clientKey);
+			} catch (Exception e) {
+				
+				throw new IllegalArgumentException("argument is illegal");
+			}
+		}
+
+		StringBuilder args = new StringBuilder();
+		args.append(server).append(" -l ").append(userName).append(" -pw ").append(password);
+		if (port != null && port.trim().length() > 0) {
+			args.append(" -P ").append(port);
+		}
+		if (initCd != null && initCd.trim().length() > 0) {
+			args.append(" -cmd \"cd ").append(initCd).append("\"");
+		}
+
+		return args.toString();
 	}
 
 	private String otherAppArgs(Request request) {

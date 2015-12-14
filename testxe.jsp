@@ -80,13 +80,19 @@
 	$('#runapp').on('click', function() {
 		PluginManager.runApp({
 			appName : 'kitty.exe',
-			args    : '-l rdtest -pw liujie02 192.168.239.10 -cmd "cd mkqiao"'
+			clientKey : '5ofw2v6m',
+			server    : '192.168.120.219',
+			userName  : '236076e1c5a0e618',
+			password  : '4c06b98ad3074cfe2d07ae1983f047df',
+			initCd    : '/home/linux/users/rdtest/mkqiao',
+			port      : '31022'
 		}, runAppResult);
 	});
 
 	$('#remotedesktop').on('click', function() {
-		PluginManager.remoteDesktop(null, {
-		}, remoteDesktopResult);
+		alert('暂未实现');
+		// PluginManager.remoteDesktop(null, {
+		// }, remoteDesktopResult);
 	});
 
 	function showVersionInfo(success, data, ex) {
