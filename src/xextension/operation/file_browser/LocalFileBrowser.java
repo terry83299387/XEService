@@ -18,11 +18,26 @@ public class LocalFileBrowser {
 		return fileChooser.selected;
 	}
 
-	public String getSelectedFiles() {
+	public File[] getSelectedFiles() {
 		if (!fileChooser.selected)
 			throw new IllegalStateException("file has not been selected");
 
 		return fileChooser.selectedFiles;
+	}
+
+	public String getSelectedFilesStr() {
+		if (!fileChooser.selected)
+			throw new IllegalStateException("file has not been selected");
+
+		StringBuilder sb = new StringBuilder(1024);
+		File[] files = fileChooser.selectedFiles;
+		for (File file : files) {
+			if (sb.length() > 0) {
+				sb.append(FileBrowser.FILE_SEPARATOR);
+			}
+			sb.append(file.getAbsolutePath());
+		}
+		return sb.toString();
 	}
 
 	public void closeFileChooser() {
@@ -43,7 +58,7 @@ public class LocalFileBrowser {
 		private String				defaultDirectory;
 		private FileFilter		fileFilter;
 		private boolean				selected;
-		private String				selectedFiles;
+		private File[]				selectedFiles;
 		private JFileChooser	fileChooser;
 
 		public void run() {
@@ -68,17 +83,9 @@ public class LocalFileBrowser {
 			frame.dispose(); // dispose frame window
 			if (button == JFileChooser.APPROVE_OPTION) {
 				if (multiSelection) {
-					StringBuilder sb = new StringBuilder(1024);
-					File[] files = fileChooser.getSelectedFiles();
-					for (File file : files) {
-						if (sb.length() > 0) {
-							sb.append(FileBrowser.FILE_SEPARATOR);
-						}
-						sb.append(file.getAbsolutePath());
-					}
-					selectedFiles = sb.toString();
+					selectedFiles = fileChooser.getSelectedFiles();
 				} else {
-					selectedFiles = fileChooser.getSelectedFile().getAbsolutePath();
+					selectedFiles = new File[] {fileChooser.getSelectedFile()};
 				}
 			}
 		}

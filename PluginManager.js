@@ -30,7 +30,8 @@ var PluginManager = (function() {
 				fileTransfer           : 3,
 				runApp                 : 4,
 				versionInfo            : 5,
-				remoteDesktop          : 6
+				remoteDesktop          : 6,
+				fileOperator           : 7
 			},
 			RETURN_CODES = {
 				OPERATION_SUCCEED      : 0,
@@ -43,6 +44,7 @@ var PluginManager = (function() {
 			};
 
 	var _init    		  = false,
+			_initializing = false,
 			latestVersion = {
 				ver : '1.0',
 				compatibility : '1.0' // inclusive
@@ -51,33 +53,58 @@ var PluginManager = (function() {
 			url           = null;
 
 	// (private)
-	function init() {
-		function callback(resp, status, xhr, ex) {
-			if (resp && resp.returnCode === RETURN_CODES.OPERATION_SUCCEED) {
-				var verInfo = resp.extraData;
-				if (verInfo && verInfo.name === NAME) {
-					_init = true;
-				} else {
-					_sendRequest();
-				}
-			} else {
-				_sendRequest();
-			}
-		}
+	function init(errorHandler) {
+		if (_init || _initializing) return;
+
+		_initializing = true;
 
 		var i = 0;
-		function _sendRequest() {
+		var _detectXeXtension = function() {
 			if (i < PORTS.length) {
-				port = PORTS[i];
+				port = PORTS[i++];
 				url = 'http://localhost:' + port + '/?jsoncallback=?';
-				i++;
-				sendRequest(OPERATORS.versionInfo, null, null, callback);
+				sendRequest(OPERATORS.versionInfo, null, null, function(resp, status, xhr, ex) {
+					if (resp && resp.returnCode === RETURN_CODES.OPERATION_SUCCEED) {
+						var verInfo = resp.extraData;
+						if (verInfo && verInfo.name === NAME) {
+							_init = true;
+						} else {
+							_detectXeXtension();
+						}
+					} else {
+						_detectXeXtension();
+					}
+				});
 			} else {
-				alert('It seems XeXtension hasn\'t been installed on your system'); // TODO show error info and download url
+				_initializing = false;
+				if (errorHandler) {
+					errorHandler();
+				}
 			}
+		};
+
+		_detectXeXtension();
+	}
+
+	// (private)
+	function _checkInit() {
+		if (!_init) {
+			if (!_initializing) {
+				init(function() {
+					Xfinity.message.confirm(
+						'此操作需要XeXtension，<a href="download/XfinityExtension.zip" target="_blank">点此下载安装</a>。'
+								+ '安装遇到问题？查看《<a href="help/xextension-user-guide.jsp" target="_blank">安装与使用帮助</a>》',
+						'提示',
+						function() {
+							console.log(arguments);
+						}
+					);
+				});
+			}
+			return false;
 		}
 
-		_sendRequest();
+		return true;
 	}
 
 	// (private)
@@ -165,20 +192,6 @@ var PluginManager = (function() {
 		return typeof(func) === 'function';
 	}
 
-	// (private)
-	function _checkInit(callback, scope) {
-		if (!_init) {
-			if (_isFunction(callback)) {
-				callback.call(scope, null, 'error', null, {
-					message     : 'PluginManager has not been initialized'
-				});
-			}
-			return false;
-		}
-
-		return true;
-	}
-
 	/**
 	 * return if PluginManager has been initialized.
 	 */
@@ -193,7 +206,7 @@ var PluginManager = (function() {
 	 * @param scope
 	 */
 	function versionInfo(callback, scope) {
-		if (!_checkInit(callback, scope)) return;
+		if (!_checkInit()) return;
 
 		sendRequest(OPERATORS.versionInfo, null, null, _genDefReqHandler(callback, scope));
 	}
@@ -206,7 +219,7 @@ var PluginManager = (function() {
 	 * @param scope
 	 */
 	function echoBack(params, callback, scope) {
-		if (!_checkInit(callback, scope)) return;
+		if (!_checkInit()) return;
 
 		sendRequest(OPERATORS.echoBack, null, params, function(resp, status, jqXHR, ex) {
 			if (_isFunction(callback)) {
@@ -226,10 +239,10 @@ var PluginManager = (function() {
 	 * @param scope
 	 */
 	function fileBrowser(params, callback, scope) {
-		if (!_checkInit(callback, scope)) return;
+		if (!_checkInit()) return;
 
 		var respId;
-		function _filesSelected(resp, status, jqXHR, ex) {
+		var _filesSelected = function(resp, status, jqXHR, ex) {
 			if (!resp) {
 				respId = null;
 				if (_isFunction(callback)) {
@@ -259,10 +272,10 @@ var PluginManager = (function() {
 				case RETURN_CODES.UNSUPPORT_OPERATION:
 				default:
 					// these cases should not happen
-					alert('request failed!');
+					Xfinity.message.alert('request failed!');
 					break;
 			}
-		}
+		};
 
 		sendRequest(OPERATORS.fileBrowser, null, params, _filesSelected);
 
@@ -291,10 +304,10 @@ var PluginManager = (function() {
 	 * @param scope
 	 */
 	function fileTransfer(params, callback, scope) {
-		if (!_checkInit(callback, scope)) return;
+		if (!_checkInit()) return;
 
 		var respId;
-		function genRequestHandler(callback, scope) {
+		var genRequestHandler = function(callback, scope) {
 			return function(resp, status, jqXHR, ex) {
 				var success = resp && resp.returnCode === RETURN_CODES.OPERATION_SUCCEED;
 				resp = resp || {};
@@ -315,7 +328,12 @@ var PluginManager = (function() {
 					callback.call(scope, false, null, 'transfer does not start');
 				}
 			} else {
-				sendRequest(OPERATORS.fileTransfer, respId, null, genRequestHandler(callback, scope));
+				/*
+				 * 目前先在服务端保存这些数据，请求时只要带上 reqId 即可
+				 */
+				sendRequest(OPERATORS.fileTransfer, respId, /*params*/{
+					type : 'transferProgress'
+				}, genRequestHandler(callback, scope));
 			}
 		};
 
@@ -330,28 +348,44 @@ var PluginManager = (function() {
 	 * @param scope
 	 */
 	function runApp(params, callback, scope) {
-		if (!_checkInit(callback, scope)) return;
+		if (!_checkInit()) return;
 
 		sendRequest(OPERATORS.runApp, null, params, _genDefReqHandler(callback, scope));
 		// TODO return an object
 	}
 
 	function remoteDesktop(params, callback, scope) {
-		if (!_checkInit(callback, scope)) return;
+		if (!_checkInit()) return;
 
-		sendRequest(OPERATORS.remoteDesktop, params, _genDefReqHandler(callback, scope));
+		sendRequest(OPERATORS.remoteDesktop, null, params, _genDefReqHandler(callback, scope));
 		// TODO return an object
+	}
+
+	/**
+	 * A set of local file operators, such as get the file size.
+	 * 
+	 * @param params (optional) extra request parameters
+	 * @param callback
+	 * @param scope
+	 */
+	function fileOperator(params, callback, scope) {
+		if (!_checkInit()) return;
+
+		sendRequest(OPERATORS.fileOperator, null, params, _genDefReqHandler(callback, scope));
 	}
 
 	init();
 
-	return {
+	var pluginManager = {
 		isInit          : isInit,
 		versionInfo     : versionInfo,
 		echoBack        : echoBack,
 		fileBrowser     : fileBrowser,
 		fileTransfer    : fileTransfer,
 		runApp          : runApp,
-		remoteDesktop   : remoteDesktop
+		remoteDesktop   : remoteDesktop,
+		fileOperator    : fileOperator
 	};
+
+	return pluginManager;
 })();

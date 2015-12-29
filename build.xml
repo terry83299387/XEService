@@ -6,6 +6,7 @@
 	<property name="runappJarName" value="runapp"/>
 	<property name="filetransferJarName" value="filetransfer"/>
 	<property name="remotedesktopJarName" value="remotedesktop"/>
+	<property name="fileOperatorJarName" value="fileoperator"/>
 
 	<property name="output.dir" value="exports" />
 	<property name="output.bin.dir" value="${output.dir}/bin" />
@@ -93,6 +94,15 @@
 			</fileset>
 		</copy>
 		<jar destfile="${output.libs.dir}/${remotedesktopJarName}.jar" basedir="${output.bin.dir}/${remotedesktopJarName}_cls">
+		</jar>
+
+		<!-- fileoperator.jar -->
+		<mkdir dir="${output.bin.dir}/${fileOperatorJarName}_cls/" />
+		<copy todir="${output.bin.dir}/${fileOperatorJarName}_cls">
+			<fileset dir="${output.bin.dir}" includes="xextension/operation/file_operator/**">
+			</fileset>
+		</copy>
+		<jar destfile="${output.libs.dir}/${fileOperatorJarName}.jar" basedir="${output.bin.dir}/${fileOperatorJarName}_cls">
 		</jar>
 
 		<!-- resources -->

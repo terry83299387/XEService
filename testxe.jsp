@@ -15,10 +15,12 @@
 <button id="echoback">Echo Back</button>&nbsp;&nbsp;
 <button id="filebrowser">File Browser</button>&nbsp;&nbsp;
 <button id="filebrowser_multi">File Browser (Multiple)</button>&nbsp;&nbsp;
-<button id="close_filebrowser">close File Browser</button>&nbsp;&nbsp;
+<button id="close_filebrowser">close File Browser</button>
+<br/><br/>
 <button id="filetransfer">File Transfer</button>&nbsp;&nbsp;
 <button id="runapp">Run App</button>&nbsp;&nbsp;
 <button id="remotedesktop">Remote Desktop</button>&nbsp;&nbsp;
+<button id="getfilesize">Get File Size</button>&nbsp;&nbsp;
 
 <div id="result" style="margin: 20px 0px;">&nbsp;</div>
 
@@ -68,12 +70,23 @@
 
 	$('#filetransfer').on('click', function() {
 		PluginManager.fileTransfer({
-			files   : 'd:/ipconfig.png',
-			home    : '/home/linux/users/rdtest/jieliu/_eojfei000',
-			dlgtype : 'Upload',
-			module  : 'job',
-			rootpath: '/home/linux/users/rdtest/jieliu',
-			defaultpath : '/home/linux/users/rdtest/jieliu',
+			host        : '192.168.120.219',
+			port        : '31022',
+			user        : '4da8227d4fc1b6be',
+			passwd      : 'af226407c556532664cc7605398d978c',
+			clientKey   : '561tv4r3',
+			protocol    : 'Sftp',
+			serverName  : '蜂鸟LinuxHPC',
+			files       : 'd:/ipconfig.png',
+			home        : '/home/linux/users/rdtest/jieliu/_eojfei000',
+			type        : 'upload',
+			module      : 'job',
+			rootPath    : '/home/linux/users/rdtest/jieliu',
+			defaultPath : '/home/linux/users/rdtest/jieliu',
+			enableExtend: false,
+			portalUser  : 'jieliu',
+			serverClass : 'SftpTool',
+			language    : 'zh_CN'
 		}, fileTransferResult)
 	});
 
@@ -93,6 +106,49 @@
 		alert('暂未实现');
 		// PluginManager.remoteDesktop(null, {
 		// }, remoteDesktopResult);
+	});
+
+	$('#getfilesize').on('click', function() {
+		var prettyFileSize = function(size) {
+			size = +size;
+			if (size < 1024) {
+				return '';
+			}
+			if (size < 1024 * 1024) {
+				return ' (' + (size / 1024).toFixed(2) + 'KB)';
+			}
+			if (size < 1024 * 1024 * 1024) {
+				return ' (' + (size / 1024 / 1024).toFixed(2) + 'MB)';
+			}
+			if (size < 1024 * 1024 * 1024 * 1024) {
+				return ' (' + (size / 1024 / 1024 / 1024).toFixed(2) + 'GB)';
+			}
+		};
+
+		// 1. select a file
+		PluginManager.fileBrowser(null, function(success, data, ex) {
+			if (!success) {
+				showError('<p style="color:red;">操作无法完成，原因：<br>' + ex + '</p>');
+				return;
+			}
+			var file = data.selectedFiles;
+			if (!file) {
+				showError('<p style="color:red;">操作无法完成，未选择任何文件</p>');
+				return;
+			}
+
+			// 2. get file size
+			PluginManager.fileOperator({
+				type : 'fileSize',
+				file : file
+			}, function(success, data, ex) {
+				if (!success) {
+					showError('<p style="color:red;">操作无法完成，原因：<br>' + ex + '</p>');
+					return;
+				}
+				$('#result').html('<p>file: ' + file + '<br>size: ' + data.size + 'B' + prettyFileSize(data.size) + '</p>');
+			});
+		});
 	});
 
 	function showVersionInfo(success, data, ex) {

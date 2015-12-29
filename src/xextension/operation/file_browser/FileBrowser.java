@@ -1,5 +1,7 @@
 package xextension.operation.file_browser;
 
+import java.io.File;
+
 import javax.swing.JFileChooser;
 
 import xextension.global.Configurations;
@@ -33,6 +35,7 @@ public class FileBrowser extends Processor {
 
 	private static LocalFileBrowser	fileBrowser;
 	private static String currentId;
+	private static String lastDir;
 
 	public FileBrowser() {
 	}
@@ -85,6 +88,9 @@ public class FileBrowser extends Processor {
 		}
 
 		String defaultDir = request.getParameter(DEFAULT_DIR);
+		if (defaultDir == null || defaultDir.length() == 0) {
+			defaultDir = lastDir;
+		}
 		fileBrowser.setDefaultDirectory(defaultDir);
 
 		String filter = request.getParameter(FILTER);
@@ -115,6 +121,14 @@ public class FileBrowser extends Processor {
 				String selectedFiles = tryToGetSelectedFiles();
 				result.setReturnCode(Configurations.OPERATION_SUCCEED);
 				result.setExtraData(SELECTED_FILES, selectedFiles);
+
+				// store last selected directory
+				File[] files = fileBrowser.getSelectedFiles();
+				if (files.length > 0) {
+					File file = files[0];
+					lastDir = file.getParent();
+				}
+
 				fileBrowser = null;
 				currentId = null;
 			} catch (TimeoutException e) {
@@ -150,7 +164,7 @@ public class FileBrowser extends Processor {
 			}
 
 			if (fileBrowser.hasSelected()) {
-				return fileBrowser.getSelectedFiles();
+				return fileBrowser.getSelectedFilesStr();
 			}
 
 			try {

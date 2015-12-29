@@ -66,8 +66,10 @@ public abstract class Processor implements Runnable {
 			this.doRequest(request, response);
 		} catch (UnsupportedMethodException e) {
 			Response.responseError(Configurations.UNSUPPORTED_METHOD, e.getMessage(), request, response);
+			// TODO log
 		} catch (Exception e) {
 			Response.responseError(Configurations.UNKNOWN_ERROR, e.getMessage(), request, response);
+			// TODO log
 
 		} finally {
 			// ignore keep-alive as it may cause problems.

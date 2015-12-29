@@ -4,7 +4,6 @@
 package xextension.operation.file_transfer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +21,8 @@ import xextension.operation.OperationResult;
 import xextension.operation.Processor;
 import cn.net.xfinity.applet.ftp.client.AppletProviderFasade;
 import cn.net.xfinity.applet.ftp.client.FtpClientApplet;
+import cn.net.xfinity.applet.trans.client.beans.TransferBean;
+import cn.net.xfinity.applet.trans.client.cache.TransferTaskCache;
 
 /**
  * @author QiaoMingkui
@@ -29,6 +30,14 @@ import cn.net.xfinity.applet.ftp.client.FtpClientApplet;
  */
 public class FileTransfer extends Processor {
 	private static final Logger	logger = LogManager.getLogger(FileTransfer.class);
+
+	private static final String TYPE = "type";
+
+	private static final String UPLOAD = "upload";
+	private static final String DOWNLOAD = "download";
+	private static final String TRANSFER_LIST = "transferList";
+	private static final String REMOVE_COMPLETED = "removeCompleted";
+	private static final String TRANSFER_PROGRESS = "transferProgress";
 
 	private static FtpClientApplet client;
 	private static Map<String, Map<String, String>> params = new HashMap<String, Map<String, String>>();
@@ -38,11 +47,16 @@ public class FileTransfer extends Processor {
 	}
 
 	public void doPost(Request request, Response response) throws Exception {
-		String reqId = request.getParameter(Configurations.REQUEST_ID);
 		OperationResult result = null;
-		if (reqId == null) {
+
+		String type = request.getParameter(TYPE);
+		if (UPLOAD.equals(type) || DOWNLOAD.equals(type)) {
 			result = _doTransfer(request, response);
-		} else {
+		} else if (TRANSFER_LIST.equals(type)) {
+			result = _listTransferTasks(request);
+		} else if (REMOVE_COMPLETED.equals(type)) {
+			result = _removeCompleted(request);
+		} else if (TRANSFER_PROGRESS.equals(type)) {
 			result = _getProgress(request);
 		}
 
@@ -50,58 +64,136 @@ public class FileTransfer extends Processor {
 		response.flush();
 	}
 
+	private OperationResult _removeCompleted(Request request) {
+		TransferTaskCache.removeCompletedCache();
+
+		OperationResult result = new OperationResult(request);
+		String respId = request.getParameter(Configurations.REQUEST_ID);
+		if (respId == null) {
+			respId = IDGenerator.nextId(this.getClass());
+		}
+		result.setResponseId(respId);
+		result.setReturnCode(Configurations.OPERATION_SUCCEED);
+		return result;
+	}
+
+	private OperationResult _listTransferTasks(Request request) {
+		OperationResult result = new OperationResult(request);
+		String respId = request.getParameter(Configurations.REQUEST_ID);
+		if (respId == null) {
+			respId = IDGenerator.nextId(this.getClass());
+		}
+		result.setResponseId(respId);
+
+		if (client == null) {
+			result.setReturnCode(Configurations.UNSUPPORT_OPERATION);
+			result.setException("transfer has not initialized");
+
+			return result;
+		}
+
+		TransferBean[] transferBeans = TransferTaskCache.getAllTransferTask();
+		List<TransferFileBean> transferFileBeans;
+		if (transferBeans != null) {
+			transferFileBeans = new ArrayList<TransferFileBean>(transferBeans.length);
+			TransferFileBean transferFileBean;
+			for (TransferBean transferBean : transferBeans) {
+				if (transferBean.getFileType() != TransferFileBean.FILE) {
+					continue;
+				}
+
+				transferFileBean = new TransferFileBean();
+				transferFileBean.setServerName(transferBean.getServerName());
+				transferFileBean.setFileName(_getFileName(transferBean.getLocalFilePath()));
+				transferFileBean.setLocalPath(_getFilePath(transferBean.getLocalFilePath()));
+				transferFileBean.setRemotePath(_getFilePath(transferBean.getRemoteFilePath()));
+				if (transferBean.isUpload()) {
+					transferFileBean.setTransferType(TransferFileBean.UPLOAD);
+				} else {
+					transferFileBean.setTransferType(TransferFileBean.DOWNLOAD);
+				}
+				transferFileBean.setTransferedSize(transferBean.getHasTransferredSize());
+				transferFileBean.setTotalSize(transferBean.getTotalSize());
+				transferFileBean.setStatus(transferBean.getTransferStatus());
+
+				transferFileBeans.add(transferFileBean);
+			}
+		} else {
+			transferFileBeans = new ArrayList<TransferFileBean>(0);
+		}
+
+		result.setReturnCode(Configurations.OPERATION_SUCCEED);
+		result.setExtraData("transferList", transferFileBeans);
+
+		return result;
+	}
+
+	private String _getFileName(String filePath) {
+		if (filePath == null || filePath.trim().length() == 0) {
+			return "(unknown_file)";
+		}
+
+		filePath = filePath.trim();
+
+		if (filePath.endsWith("/") || filePath.endsWith("\\")) {
+			return "(empty_name)";
+		}
+
+		int idx1 = filePath.lastIndexOf("/");
+		int idx2 = filePath.lastIndexOf("\\");
+		int idx = Math.max(idx1, idx2);
+		if (idx == -1) {
+			return filePath;
+		}
+
+		return filePath.substring(idx + 1);
+	}
+
+	private String _getFilePath(String filePath) {
+		if (filePath == null || filePath.trim().length() == 0) {
+			return "(unknown_path)";
+		}
+
+		filePath = filePath.trim();
+
+		if (filePath.endsWith("/") || filePath.endsWith("\\")) {
+			return filePath;
+		}
+
+		int idx1 = filePath.lastIndexOf("/");
+		int idx2 = filePath.lastIndexOf("\\");
+		int idx = Math.max(idx1, idx2);
+		if (idx == -1) {
+			return "";
+		}
+
+		return filePath.substring(0, idx);
+	}
+
 	private OperationResult _doTransfer(Request request, Response response) throws Exception {
-		String[] default_args = {
-			"host=192.168.120.219",
-			"user=4da8227d4fc1b6be",
-			"passwd=af226407c556532664cc7605398d978c",
-//			"files=d:/ipconfig.png",
-//			"home=/home/linux/users/rdtest/jieliu/_eojfei000",
-//			"dlgtype=Upload",
-//			"module=job",
-//			"rootpath=/home/linux/users/rdtest/jieliu",
-//			"defaultpath=/home/linux/users/rdtest/jieliu",
-			"port=31022",
-			"fileTransferProtocol=Sftp",
-			"servername=蜂鸟LinuxHPC",
-			"clientkey=561tv4r3",
-			"enableextend=true",
-			"portaluser=jieliu",
-			"serverclass=SftpTool",
-			"language=zh_CN"
-		};
-		String files = request.getParameter("files");
-		String home = request.getParameter("home");
-		String dlgtype = request.getParameter("dlgtype");
-		String module = request.getParameter("module");
-		String rootpath = request.getParameter("rootpath");
-		String defaultpath = request.getParameter("defaultpath");
-		List<String> argList = new ArrayList<String>(Arrays.asList(default_args));
-		argList.add("files=" + files);
-		argList.add("home=" + home);
-		argList.add("dlgtype=" + dlgtype);
-		if (rootpath != null) argList.add("rootpath=" + rootpath);
-		if (defaultpath != null) argList.add("defaultpath=" + defaultpath);
-
-		String[] args = argList.toArray(default_args);
-
-		boolean isJob = "job".equals(module);
-
+		Map<String, String> args = request.getParameters();
 		if (client == null) {
 			try {
 				initClient(args);
 			} catch (Exception e) {
-				client = null;
+				if (client != null) {
+					client.destroy();
+					client = null;
+				}
 				throw e;
 			}
 		} else {
 			setParams(args);
 		}
 
-		if (isJob) {
+		String targetPath = null;
+		String module = request.getParameter("module");
+		if ("job".equals(module)) {
 			client.initDirectTranfser();
+			targetPath = args.get("home");
 		} else {
 			client.initTransfer();
+			targetPath = client.getDownloadDir();
 		}
 
 		OperationResult result = new OperationResult(request);
@@ -109,11 +201,15 @@ public class FileTransfer extends Processor {
 		String respId = IDGenerator.nextId(this.getClass());
 		result.setResponseId(respId);
 
-		Map<String, String> params = new HashMap<String, String>();
-		params.put("dlgtype", dlgtype);
-		params.put("files", files);
-		params.put("home", home);
-		FileTransfer.params.put(respId, params);
+		// store params used to get transfer progress
+		if ("job".equals(module)) { // TODO 目前只储存提交作业时的文件上传参数，因为下载进度的获取有问题
+			Map<String, String> params = new HashMap<String, String>();
+			params.put("serverName", args.get("serverName"));
+			params.put("type",       args.get("type"));
+			params.put("files",      args.get("files"));
+			params.put("targetPath", targetPath);
+			FileTransfer.params.put(respId, params);
+		}
 
 		return result;
 	}
@@ -129,18 +225,20 @@ public class FileTransfer extends Processor {
 			throw new IllegalStateException("task not found");
 		}
 
-		String serverName = "蜂鸟LinuxHPC";
-		String type       = params.get("dlgtype");
+		String serverName = params.get("serverName");
+		String type       = params.get("type");
 		String files      = params.get("files");
-		String targetPath = params.get("home");
+		String targetPath = params.get("targetPath");
 
 		String progress = client.getTaskPercentage(serverName, type, files, targetPath);
 		int percentage = -1;
 		String exception = null;
 		try {
 			percentage = Integer.parseInt(progress);
-			if (percentage > 100) {
+			if (percentage >= 100) {
 				percentage = 100;
+				// remove stored parameters while transfer completes
+				FileTransfer.params.remove(reqId);
 			}
 		} catch (NumberFormatException e) {
 			exception = progress;
@@ -159,7 +257,7 @@ public class FileTransfer extends Processor {
 		return result;
 	}
 
-	private void initClient(String[] args) {
+	private void initClient(Map<String, String> args) {
 		synchronized (FileTransfer.class) {
 			if (client != null) {
 				setParams(args);
@@ -174,27 +272,46 @@ public class FileTransfer extends Processor {
 			client.initService();
 			JFrame frame = new JFrame();
 			client.startWindowFrame(frame);
-			frame.setVisible(true);
+			// do not show window at first
+//			frame.setVisible(true);
 		}
 	}
 
-	private void setParams(String[] params) {
+	private void setParams(Map<String, String> params) {
 		client.clearParameters();
-		for (String arg : params) {
-			String[] nameValue = arg.split("=");
-			if (nameValue.length == 2 && !"module".equals(nameValue[0])) {
-				try {
-					client.setParameter(nameValue[0], nameValue[1]);
-				} catch (Exception e) {
-				}
-			}
+
+		try {
+			client.setParameter("host",                 params.get("host"));
+			client.setParameter("user",                 params.get("user"));
+			client.setParameter("passwd",               params.get("passwd"));
+			client.setParameter("port",                 params.get("port"));
+			client.setParameter("fileTransferProtocol", params.get("protocol"));
+			client.setParameter("servername",           params.get("serverName"));
+			client.setParameter("clientkey",            params.get("clientKey"));
+			client.setParameter("home",                 params.get("home"));
+			client.setParameter("files",                params.get("files"));
+			client.setParameter("dlgtype",              params.get("type"));
+			client.setParameter("rootpath",             params.get("rootPath"));
+			client.setParameter("defaultpath",          params.get("defaultPath"));
+			client.setParameter("portaluser",           params.get("portalUser"));
+			client.setParameter("enableextend",         params.get("enableExtend"));
+			client.setParameter("serverclass",          params.get("serverClass"));
+			client.setParameter("language",             params.get("language"));
+		} catch (Exception e) {
+			logger.error("file transfer error", e);
 		}
+
 		client.initParameters();
 	}
 
+	/**
+	 * test
+	 * 
+	 * @param args
+	 * @throws Exception
+	 */
 	public static void main(String[] args) throws Exception {
-		FileTransfer trans = new FileTransfer();
-		
-		trans.doPost(null, null);
+//		FileTransfer trans = new FileTransfer();
+//		trans.doPost(null, null);
 	}
 }

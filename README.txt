@@ -45,11 +45,6 @@
             <td>说明</td>
         </tr>
         <tr>
-            <td>5</td>
-            <td>operation.VersionInfo</td>
-            <td>返回XeXtension的版本信息</td>
-        </tr>
-        <tr>
             <td>1</td>
             <td>operation.EchoBack</td>
             <td>用于调试。返回请求信息（包括HTTP头部和参数）</td>
@@ -68,6 +63,16 @@
             <td>4</td>
             <td>operation.run_app</td>
             <td>在用户本地运行指定程序</td>
+        </tr>
+        <tr>
+            <td>5</td>
+            <td>operation.VersionInfo</td>
+            <td>返回XeXtension的版本信息</td>
+        </tr>
+        <tr>
+            <td>7</td>
+            <td>operation.file_operator</td>
+            <td>提供了一组本地文件相关的接口，例如获取文件大小等</td>
         </tr>
     </table>
 

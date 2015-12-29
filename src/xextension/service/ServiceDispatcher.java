@@ -13,6 +13,7 @@ import xextension.operation.Processor;
 import xextension.operation.UnknownOperatorException;
 import xextension.operation.VersionInfo;
 import xextension.operation.file_browser.FileBrowser;
+import xextension.operation.file_operator.FileOperator;
 import xextension.operation.file_transfer.FileTransfer;
 import xextension.operation.remote_desktop.RemoteDesktop;
 import xextension.operation.run_app.RunApp;
@@ -51,10 +52,13 @@ public class ServiceDispatcher {
 		} catch (NumberFormatException e) {
 			Response.responseError(Configurations.UNKNOWN_OPERATOR,
 					"operator is not illegal:" + operatorParam, request, response);
+			// TODO log
 		} catch (UnknownOperatorException e) {
 			Response.responseError(Configurations.UNKNOWN_OPERATOR, e.getMessage(), request, response);
+			// TODO log
 		} catch (Exception e) {
 			Response.responseError(Configurations.UNKNOWN_ERROR, e.getMessage(), request, response);
+			// TODO log
 		}
 	}
 
@@ -79,6 +83,9 @@ public class ServiceDispatcher {
 				break;
 			case Configurations.RUN_APP:
 				processor = new RunApp();
+				break;
+			case Configurations.FILE_OPERATOR:
+				processor = new FileOperator();
 				break;
 			case Configurations.REMOTE_DESKTOP:
 				processor = new RemoteDesktop();
