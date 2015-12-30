@@ -2,6 +2,9 @@ package xextension.operation;
 
 import java.net.Socket;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import xextension.global.Configurations;
 import xextension.http.Request;
 import xextension.http.Response;
@@ -15,6 +18,8 @@ import xextension.http.Response;
  * 
  */
 public abstract class Processor implements Runnable {
+	private static final Logger	logger = LogManager.getLogger(Processor.class);
+
 	private Socket		connection;
 	private Request		request;
 	private Response	response;
@@ -66,10 +71,10 @@ public abstract class Processor implements Runnable {
 			this.doRequest(request, response);
 		} catch (UnsupportedMethodException e) {
 			Response.responseError(Configurations.UNSUPPORTED_METHOD, e.getMessage(), request, response);
-			// TODO log
+			logger.warn(request, e);
 		} catch (Exception e) {
 			Response.responseError(Configurations.UNKNOWN_ERROR, e.getMessage(), request, response);
-			// TODO log
+			logger.warn(request, e);
 
 		} finally {
 			// ignore keep-alive as it may cause problems.

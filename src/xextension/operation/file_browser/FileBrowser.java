@@ -124,7 +124,7 @@ public class FileBrowser extends Processor {
 
 				// store last selected directory
 				File[] files = fileBrowser.getSelectedFiles();
-				if (files.length > 0) {
+				if (files != null && files.length > 0) {
 					File file = files[0];
 					lastDir = file.getParent();
 				}

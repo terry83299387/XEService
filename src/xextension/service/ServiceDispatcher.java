@@ -5,6 +5,9 @@ package xextension.service;
 
 import java.net.Socket;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import xextension.global.Configurations;
 import xextension.http.Request;
 import xextension.http.Response;
@@ -23,6 +26,7 @@ import xextension.operation.run_app.RunApp;
  *
  */
 public class ServiceDispatcher {
+	private static final Logger	logger = LogManager.getLogger(ServiceDispatcher.class);
 
 	/**
 	 * Dispatch a service to process request.
@@ -52,13 +56,13 @@ public class ServiceDispatcher {
 		} catch (NumberFormatException e) {
 			Response.responseError(Configurations.UNKNOWN_OPERATOR,
 					"operator is not illegal:" + operatorParam, request, response);
-			// TODO log
+			logger.warn(request, e);
 		} catch (UnknownOperatorException e) {
 			Response.responseError(Configurations.UNKNOWN_OPERATOR, e.getMessage(), request, response);
-			// TODO log
+			logger.warn(request, e);
 		} catch (Exception e) {
 			Response.responseError(Configurations.UNKNOWN_ERROR, e.getMessage(), request, response);
-			// TODO log
+			logger.warn(request, e);
 		}
 	}
 

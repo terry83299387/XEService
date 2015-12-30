@@ -12,8 +12,10 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.Map.Entry;
 
 /**
  * This article introduces information about HTTP Message:
@@ -75,6 +77,33 @@ public class Request {
 		// body (does not implement yet)
 
 		return request;
+	}
+
+	public String toString() {
+		StringBuilder sb = new StringBuilder(128);
+		sb.append("method").append(":").append(method)
+				.append(", ").append("url").append(":").append(url)
+				.append(", ").append("version").append(":").append(version).append("\n");
+
+		// headers
+		Iterator<Entry<String, String>> i = headers.entrySet().iterator();
+		Entry<String, String> entry;
+		sb.append("headers").append(":").append("\n");
+		while(i.hasNext()) {
+			entry = i.next();
+			sb.append("\t").append(entry.getKey()).append(":").append(entry.getValue()).append("\n");
+		}
+
+		// parameters
+		getParameters();
+		i = parameters.entrySet().iterator();
+		sb.append("parameters").append(":").append("\n");
+		while(i.hasNext()) {
+			entry = i.next();
+			sb.append("\t").append(entry.getKey()).append(":").append(entry.getValue()).append("\n");
+		}
+
+		return sb.toString();
 	}
 
 	/**

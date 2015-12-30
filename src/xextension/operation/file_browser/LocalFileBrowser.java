@@ -29,8 +29,12 @@ public class LocalFileBrowser {
 		if (!fileChooser.selected)
 			throw new IllegalStateException("file has not been selected");
 
-		StringBuilder sb = new StringBuilder(1024);
 		File[] files = fileChooser.selectedFiles;
+		if (files == null) {
+			return null;
+		}
+
+		StringBuilder sb = new StringBuilder(1024);
 		for (File file : files) {
 			if (sb.length() > 0) {
 				sb.append(FileBrowser.FILE_SEPARATOR);
