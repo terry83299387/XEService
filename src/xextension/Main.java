@@ -30,7 +30,7 @@ public class Main {
 
 	private static final String	EQUAL = "=";
 	private static final String	SERVER_URL_PART = "/?";
-	private static final String	SERVER_URL_PREFIX = "http://localhost:";
+	private static final String	SERVER_URL_PREFIX = "https://localhost:";
 	private static final String	AUTOUPDATE_FALSE = "autoupdate=false";
 	private static final String	AUTOUPDATE_TRUE = "autoupdate=true";
 
@@ -55,9 +55,10 @@ public class Main {
 				String newVer = ConfigHelper.getProperty(Configurations.CUSTOMER_VERSION);
 				if (!oldVer.equals(newVer)/* && Native.isAvailable()*/) {
 //					Native.shellExecute(Native.SHELLEXECUTE_OPEN, "XEService.exe", null, null, Native.SW_NORMAL);
-					// jsmooth.Native is invalid (don't know why), how do I rerun application after update?
+					// jsmooth.Native is invalid (don't know why),
+					// so I use another approach to rerun application after updating
 					Runtime.getRuntime().exec(Configurations.EXE_FILE_NAME + " " + AUTOUPDATE_FALSE);
-					logger.info("update completes, restart now");
+					logger.info("update completed, restart now");
 					System.exit(0);
 				}
 			}
@@ -73,8 +74,7 @@ public class Main {
 		UIManager.initLookAndFeel();
 
 		try {
-			XEService service = new XEService();
-			service.startService();
+			new XEService();
 		} catch (Exception e) {
 			logger.error("XeXtension service startup failed: ", e);
 		}
@@ -89,11 +89,11 @@ public class Main {
 		for (int p : Configurations.CANDIDATE_PORTS) {
 			try {
 				connection = (HttpURLConnection) new URL(SERVER_URL_PREFIX + p + SERVER_URL_PART
-							+ Configurations.REQUEST_OPERATOR + EQUAL + Configurations.VERSION_INFO
-						).openConnection();
+						+ Configurations.REQUEST_OPERATOR + EQUAL + Configurations.VERSION_INFO
+					).openConnection();
 				connection.connect();
-        reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        line = reader.readLine();
+		        reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+		        line = reader.readLine();
 			} catch (IOException e) {
 				continue;
 			} finally {

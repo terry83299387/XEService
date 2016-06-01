@@ -27,11 +27,11 @@ public class IDGenerator {
 		// random part, 6 digits
 		String random = Integer.toString(randomInt(0x100000, 0x1FFFFF), 16);
 
-		// index part, 2+ digits
-		String idxStr = Integer.toString(idx, 16);
-
+		String idxStr;
 		// guarantee that instances of individual classes get different idx values
 		synchronized (clazz) {
+			// index part, 2+ digits
+			idxStr = Integer.toString(idx, 16);
 			idx++;
 		}
 

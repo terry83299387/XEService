@@ -1,13 +1,10 @@
 package xextension.operation;
 
-import java.net.Socket;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import xextension.global.Configurations;
-import xextension.http.Request;
-import xextension.http.Response;
+import xextension.http.IHTTPSession;
+import xextension.http.Method;
 
 /**
  * Abstract class which provides default action for handling requests.
@@ -17,12 +14,8 @@ import xextension.http.Response;
  * @author QiaoMingkui
  * 
  */
-public abstract class Processor implements Runnable {
+public abstract class Processor {
 	private static final Logger	logger = LogManager.getLogger(Processor.class);
-
-	private Socket		connection;
-	private Request		request;
-	private Response	response;
 
 	public Processor() {
 	}
@@ -30,107 +23,50 @@ public abstract class Processor implements Runnable {
 	/**
 	 * Handle GET requests.
 	 * 
-	 * @param request
-	 * @param response
+	 * @param session
+	 * @return OperationResult the result of executing
 	 */
-	public abstract void doGet(Request request, Response response) throws Exception;
+	public abstract OperationResult doGet(IHTTPSession session) throws Exception;
 
 	/**
 	 * Handle POST requests.
 	 * 
-	 * @param request
-	 * @param response
+	 * @param session
+	 * @return OperationResult the result of executing
 	 */
-	public abstract void doPost(Request request, Response response) throws Exception;
+	public abstract OperationResult doPost(IHTTPSession session) throws Exception;
 
 	/**
 	 * Handle requests.
 	 * 
-	 * @param request
-	 * @param response
+	 * @param session
+	 * @return OperationResult the result of executing
 	 * @throws UnsupportedMethodException
+	 * @throws IllegalArgumentException
+	 * @throws Exception
 	 */
-	public void doRequest(Request request, Response response) throws UnsupportedMethodException, Exception {
-		if (request == null || response == null) return;
+	public OperationResult doRequest(IHTTPSession session) throws UnsupportedMethodException, Exception {
+		if (session == null) throw new IllegalArgumentException("no session specificated");
 
-		response.setHeader(Configurations.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-
-		String method = request.getMethod();
-		if (Request.GET.equals(method)) {
-			this.doGet(request, response);
-		} else if (Request.POST.equals(method)) {
-			this.doPost(request, response);
+		Method method = session.getMethod();
+		if (method == Method.GET) {
+			return this.doGet(session);
+		} else if (method == Method.POST) {
+			return this.doPost(session);
 		} else {
 			throw new UnsupportedMethodException("Unsupported method: " + method);
 		}
 	}
 
-	@Override
-	public void run() {
-		try {
-			this.doRequest(request, response);
-		} catch (UnsupportedMethodException e) {
-			Response.responseError(Configurations.UNSUPPORTED_METHOD, e.getMessage(), request, response);
-			logger.warn(request, e);
-		} catch (Exception e) {
-			Response.responseError(Configurations.UNKNOWN_ERROR, e.getMessage(), request, response);
-			logger.warn(request, e);
-
-		} finally {
-			// ignore keep-alive as it may cause problems.
-			// set Connection field to close in response to simply disable this feature.
-			// (see Response.flush())
-			request = null;
-			response = null;
-			if (connection != null) {
-				try {
-					connection.close();
-				} catch (Exception e) {
-				}
-			}
-		}
-	}
 
 	/**
-	 * @return the connection
+	 * unified error response handler.
 	 */
-	public Socket getConnection() {
-		return connection;
-	}
-
-	/**
-	 * @param connection the connection to set
-	 */
-	public void setConnection(Socket connection) {
-		this.connection = connection;
-	}
-
-	/**
-	 * @return the request
-	 */
-	public Request getRequest() {
-		return request;
-	}
-
-	/**
-	 * @param request the request to set
-	 */
-	public void setRequest(Request request) {
-		this.request = request;
-	}
-
-	/**
-	 * @return the response
-	 */
-	public Response getResponse() {
-		return response;
-	}
-
-	/**
-	 * @param response the response to set
-	 */
-	public void setResponse(Response response) {
-		this.response = response;
+	public static OperationResult responseError(int returnCode, String msg, IHTTPSession session) {
+		OperationResult result = new OperationResult(session);
+		result.setReturnCode(returnCode);
+		result.setException(msg);
+		return result;
 	}
 
 }

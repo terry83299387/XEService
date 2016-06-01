@@ -4,8 +4,7 @@ import java.io.File;
 
 import xextension.global.Configurations;
 import xextension.global.IDGenerator;
-import xextension.http.Request;
-import xextension.http.Response;
+import xextension.http.IHTTPSession;
 import xextension.operation.OperationResult;
 import xextension.operation.Processor;
 
@@ -25,24 +24,25 @@ public class FileOperator extends Processor {
 	public FileOperator() {
 	}
 
-	public void doGet(Request request, Response response) throws Exception {
-		this.doPost(request, response);
+	public OperationResult doGet(IHTTPSession session) throws Exception {
+		return this.doPost(session);
 	}
 
-	public void doPost(Request request, Response response) throws Exception {
-		String type = request.getParameter(TYPE);
+	public OperationResult doPost(IHTTPSession session) throws Exception {
+		String type = session.getParameter(TYPE);
 		if (FILE_SIZE.equals(type)) {
-			getFileSize(request, response);
+			return getFileSize(session);
 		}
+		return null; // TODO should not return null
 	}
 
-	private void getFileSize(Request request, Response response) {
-		String filePath = request.getParameter(FILE_PATH);
+	private OperationResult getFileSize(IHTTPSession session) {
+		String filePath = session.getParameter(FILE_PATH);
 		if (filePath == null || filePath.trim().length() == 0) {
 			throw new IllegalArgumentException("file not specified");
 		}
 
-		OperationResult result = new OperationResult(request);
+		OperationResult result = new OperationResult(session);
 		String respId = IDGenerator.nextId(this.getClass());
 		result.setResponseId(respId);	
 
@@ -58,9 +58,7 @@ public class FileOperator extends Processor {
 			result.setReturnCode(Configurations.OPERATION_SUCCEED);
 		}
 
-		String ret = result.toJsonString();
-		response.print(ret);
-		response.flush();
+		return result;
 	}
 
 }

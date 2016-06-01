@@ -58,12 +58,12 @@ public class LocalFileBrowser {
 	 */
 	private static class _FileChooser extends Thread {
 		private boolean				multiSelection;
-		private int						fileSelectionMode;
+		private int					fileSelectionMode;
 		private String				defaultDirectory;
-		private FileFilter		fileFilter;
+		private FileFilter			fileFilter;
 		private boolean				selected;
 		private File[]				selectedFiles;
-		private JFileChooser	fileChooser;
+		private JFileChooser		fileChooser;
 
 		public void run() {
 			fileChooser = new JFileChooser();

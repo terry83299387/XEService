@@ -9,7 +9,7 @@ import java.util.Map;
 import org.json.JSONStringer;
 
 import xextension.global.Configurations;
-import xextension.http.Request;
+import xextension.http.IHTTPSession;
 
 /**
  * @author QiaoMingkui
@@ -18,7 +18,7 @@ import xextension.http.Request;
 public class OperationResult {
 	private String				operator;
 	private String				reqId;
-	private int						returnCode;
+	private int					returnCode;
 	private String				respId;
 	private String				exception;
 	private Map<String, Object>	extraData	= new HashMap<String, Object>();
@@ -27,10 +27,10 @@ public class OperationResult {
 
 	}
 
-	public OperationResult(Request request) {
-		if (request != null) {
-			operator = request.getParameter(Configurations.REQUEST_OPERATOR);
-			reqId = request.getParameter(Configurations.REQUEST_ID);
+	public OperationResult(IHTTPSession session) {
+		if (session != null) {
+			operator = session.getParameter(Configurations.REQUEST_OPERATOR);
+			reqId = session.getParameter(Configurations.REQUEST_ID);
 		}
 	}
 

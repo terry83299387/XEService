@@ -11,8 +11,7 @@ import org.apache.logging.log4j.Logger;
 import xextension.global.ConfigHelper;
 import xextension.global.Configurations;
 import xextension.global.IDGenerator;
-import xextension.http.Request;
-import xextension.http.Response;
+import xextension.http.IHTTPSession;
 
 /**
  * @author QiaoMingkui
@@ -21,23 +20,23 @@ import xextension.http.Response;
 public class VersionInfo extends Processor {
 	private static final Logger logger = LogManager.getLogger(VersionInfo.class);
 
-	public  static final String NAME					= "name";
+	public  static final String NAME				= "name";
 	private static final String VERSION				= "version";
 	private static final String COPYRIGHT			= "copyright";
 
 	private static final String REFERER				= "Referer";
 	private static final String PROTOCOL_SEPARATOR	= "://";
-	private static final String COLON					= ":";
-	private static final String SLASH					= "/";
+	private static final String COLON				= ":";
+	private static final String SLASH				= "/";
 
-	public void doGet(Request request, Response response) throws Exception {
-		this.doPost(request, response);
+	public OperationResult doGet(IHTTPSession session) throws Exception {
+		return this.doPost(session);
 	}
 
-	public void doPost(Request request, Response response) throws Exception {
-		storeXfinityServer(request);
+	public OperationResult doPost(IHTTPSession session) throws Exception {
+		storeXfinityServer(session);
 
-		OperationResult result = new OperationResult(request);
+		OperationResult result = new OperationResult(session);
 		result.setReturnCode(Configurations.OPERATION_SUCCEED);
 		String respId = IDGenerator.nextId(this.getClass());
 		result.setResponseId(respId);
@@ -45,13 +44,12 @@ public class VersionInfo extends Processor {
 		result.setExtraData(VERSION, Configurations.VERSION);
 		result.setExtraData(COPYRIGHT, Configurations.COPYRIGHT);
 
-		response.print(result.toJsonString());
-		response.flush();
+		return result;
 	}
 
-	private void storeXfinityServer(Request request) {
+	private void storeXfinityServer(IHTTPSession session) {
 		try {
-			String referer = request.getHeader(REFERER);
+			String referer = session.getHeader(REFERER);
 			if (referer != null && referer.trim().length() > 0) {
 				URL url = new URL(referer);
 				String protocol = url.getProtocol();

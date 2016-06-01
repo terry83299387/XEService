@@ -5,8 +5,7 @@ import java.io.IOException;
 
 import xextension.global.Configurations;
 import xextension.global.IDGenerator;
-import xextension.http.Request;
-import xextension.http.Response;
+import xextension.http.IHTTPSession;
 import xextension.operation.OperationResult;
 import xextension.operation.Processor;
 
@@ -19,12 +18,12 @@ import xextension.operation.Processor;
 public class RunApp extends Processor {
 	private static final String KITTY = "kitty.exe";
 
-	public void doGet(Request request, Response response) throws Exception {
-		this.doPost(request, response);
+	public OperationResult doGet(IHTTPSession session) throws Exception {
+		return this.doPost(session);
 	}
 
-	public void doPost(Request request, Response response) throws Exception {
-		String appName = request.getParameter("appName");
+	public OperationResult doPost(IHTTPSession session) throws Exception {
+		String appName = session.getParameter("appName");
 		if (appName == null || appName.trim().length() == 0) {
 			throw new IllegalArgumentException("app name is unspecified");
 		}
@@ -50,9 +49,9 @@ public class RunApp extends Processor {
 		// get args
 		String args = null;
 		if (KITTY.equals(appName)) {
-			args = getKittyArgs(request);
+			args = getKittyArgs(session);
 		} else {
-			args = otherAppArgs(request);
+			args = otherAppArgs(session);
 		}
 
 		String cmd = path + (args == null ? "" : " " + args);
@@ -64,22 +63,21 @@ public class RunApp extends Processor {
 			throw new IllegalAccessError("can not open specified program");
 		}
 
-		OperationResult result = new OperationResult(request);
+		OperationResult result = new OperationResult(session);
 		result.setReturnCode(Configurations.OPERATION_SUCCEED);
 		String respId = IDGenerator.nextId(this.getClass());
 		result.setResponseId(respId);
-		String ret = result.toJsonString();
-		response.print(ret);
-		response.flush();
+
+		return result;
 	}
 
-	private String getKittyArgs(Request request) {
-		String clientKey = request.getParameter("clientKey");
-		String server    = request.getParameter("server");
-		String port      = request.getParameter("port");
-		String userName  = request.getParameter("userName");
-		String password  = request.getParameter("password");
-		String initCd    = request.getParameter("initCd");
+	private String getKittyArgs(IHTTPSession session) {
+		String clientKey = session.getParameter("clientKey");
+		String server    = session.getParameter("server");
+		String port      = session.getParameter("port");
+		String userName  = session.getParameter("userName");
+		String password  = session.getParameter("password");
+		String initCd    = session.getParameter("initCd");
 
 		if (clientKey != null && clientKey.trim().length() > 0) {
 			DesDecrypt decrypt = new DesDecrypt();
@@ -104,8 +102,8 @@ public class RunApp extends Processor {
 		return args.toString();
 	}
 
-	private String otherAppArgs(Request request) {
-		return request.getParameter("args");
+	private String otherAppArgs(IHTTPSession session) {
+		return session.getParameter("args");
 	}
 
 }

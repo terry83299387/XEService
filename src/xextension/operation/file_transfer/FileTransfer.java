@@ -15,8 +15,7 @@ import org.apache.logging.log4j.Logger;
 
 import xextension.global.Configurations;
 import xextension.global.IDGenerator;
-import xextension.http.Request;
-import xextension.http.Response;
+import xextension.http.IHTTPSession;
 import xextension.operation.OperationResult;
 import xextension.operation.Processor;
 import cn.net.xfinity.applet.ftp.client.AppletProviderFasade;
@@ -42,33 +41,32 @@ public class FileTransfer extends Processor {
 	private static FtpClientApplet client;
 	private static Map<String, Map<String, String>> params = new HashMap<String, Map<String, String>>();
 
-	public void doGet(Request request, Response response) throws Exception {
-		this.doPost(request, response);
+	public OperationResult doGet(IHTTPSession session) throws Exception {
+		return this.doPost(session);
 	}
 
-	public void doPost(Request request, Response response) throws Exception {
+	public OperationResult doPost(IHTTPSession session) throws Exception {
 		OperationResult result = null;
 
-		String type = request.getParameter(TYPE);
+		String type = session.getParameter(TYPE);
 		if (UPLOAD.equals(type) || DOWNLOAD.equals(type)) {
-			result = _doTransfer(request, response);
+			result = _doTransfer(session);
 		} else if (TRANSFER_LIST.equals(type)) {
-			result = _listTransferTasks(request);
+			result = _listTransferTasks(session);
 		} else if (REMOVE_COMPLETED.equals(type)) {
-			result = _removeCompleted(request);
+			result = _removeCompleted(session);
 		} else if (TRANSFER_PROGRESS.equals(type)) {
-			result = _getProgress(request);
+			result = _getProgress(session);
 		}
 
-		response.print(result.toJsonString());
-		response.flush();
+		return result;
 	}
 
-	private OperationResult _removeCompleted(Request request) {
+	private OperationResult _removeCompleted(IHTTPSession session) {
 		TransferTaskCache.removeCompletedCache();
 
-		OperationResult result = new OperationResult(request);
-		String respId = request.getParameter(Configurations.REQUEST_ID);
+		OperationResult result = new OperationResult(session);
+		String respId = session.getParameter(Configurations.REQUEST_ID);
 		if (respId == null) {
 			respId = IDGenerator.nextId(this.getClass());
 		}
@@ -77,9 +75,9 @@ public class FileTransfer extends Processor {
 		return result;
 	}
 
-	private OperationResult _listTransferTasks(Request request) {
-		OperationResult result = new OperationResult(request);
-		String respId = request.getParameter(Configurations.REQUEST_ID);
+	private OperationResult _listTransferTasks(IHTTPSession session) {
+		OperationResult result = new OperationResult(session);
+		String respId = session.getParameter(Configurations.REQUEST_ID);
 		if (respId == null) {
 			respId = IDGenerator.nextId(this.getClass());
 		}
@@ -170,8 +168,8 @@ public class FileTransfer extends Processor {
 		return filePath.substring(0, idx);
 	}
 
-	private OperationResult _doTransfer(Request request, Response response) throws Exception {
-		Map<String, String> args = request.getParameters();
+	private OperationResult _doTransfer(IHTTPSession session) throws Exception {
+		Map<String, String> args = session.getParms();
 		if (client == null) {
 			try {
 				initClient(args);
@@ -187,7 +185,7 @@ public class FileTransfer extends Processor {
 		}
 
 		String targetPath = null;
-		String module = request.getParameter("module");
+		String module = session.getParameter("module");
 		if ("job".equals(module)) {
 			client.initDirectTranfser();
 			targetPath = args.get("home");
@@ -196,7 +194,7 @@ public class FileTransfer extends Processor {
 			targetPath = client.getDownloadDir();
 		}
 
-		OperationResult result = new OperationResult(request);
+		OperationResult result = new OperationResult(session);
 		result.setReturnCode(Configurations.OPERATION_SUCCEED);
 		String respId = IDGenerator.nextId(this.getClass());
 		result.setResponseId(respId);
@@ -214,12 +212,12 @@ public class FileTransfer extends Processor {
 		return result;
 	}
 
-	private OperationResult _getProgress(Request request) {
+	private OperationResult _getProgress(IHTTPSession session) {
 		if (client == null) {
 			throw new IllegalStateException("transfer has not been initialized");
 		}
 
-		String reqId = request.getParameter(Configurations.REQUEST_ID);
+		String reqId = session.getParameter(Configurations.REQUEST_ID);
 		Map<String, String> params = FileTransfer.params.get(reqId);
 		if (params == null) {
 			throw new IllegalStateException("task not found");
@@ -244,7 +242,7 @@ public class FileTransfer extends Processor {
 			exception = progress;
 		}
 
-		OperationResult result = new OperationResult(request);
+		OperationResult result = new OperationResult(session);
 		result.setResponseId(reqId);
 		result.setExtraData("percentage", percentage);
 		if (exception != null) {
