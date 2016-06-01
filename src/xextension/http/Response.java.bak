@@ -1,0 +1,147 @@
+/**
+ * 
+ */
+package xextension.http;
+
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import xextension.global.Configurations;
+import xextension.operation.OperationResult;
+
+/**
+ * This article introduces information about HTTP Message:
+ * 
+ * http://www.oschina.net/question/565065_81309
+ * 
+ * @author QiaoMingkui
+ * 
+ */
+public class Response {
+	private static final Logger	logger = LogManager.getLogger(Response.class);
+
+	private static final String HTTP_VERSION				= "HTTP/1.1";
+	private static final String CONTENT_LENGTH			= "Content-Length";
+	private static final String DATE								= "Date";
+	private static final String SERVER							= "Server";
+	private static final String CONNECTION					= "Connection";
+	private static final String CONNECTION_CLOSE		= "close";
+	private static final String HEADER_SEPARATOR		= ": ";
+	private static final String SPACE								= " ";
+	private static final String LEFT_PARENTHESE			= "(";
+	private static final String RIGHT_PARENTHESE		= ")";
+	private static final String NEW_LINE						= "\r\n";
+
+	private Writer							out;
+	private Map<String, String>	headers							= new HashMap<String, String>();
+	private String							status							= "200 OK";
+	private StringBuilder				content							= new StringBuilder(1024);
+	private String							jsonCallback;
+
+	public Response() {
+	}
+
+	public static Response getResponse(OutputStream outputStream) {
+		Response response = new Response();
+		try {
+			response.out = new OutputStreamWriter(new BufferedOutputStream(outputStream), Configurations.DEFAULT_ENCODING);
+		} catch (UnsupportedEncodingException e) {
+			// ignore, this should never gonna happen
+		}
+		return response;
+	}
+
+	public void setHeader(String name, String value) {
+		if (name != null && name.length() != 0) {
+			headers.put(name, value);
+		}
+	}
+
+	public void setStatus(String status) {
+		if (status != null) {
+			this.status = status;
+		}
+	}
+
+	public void print(String content) {
+		if (content != null) {
+//			logger.info("content: " + content); ///////// debug
+			this.content.append(content);
+		}
+	}
+
+	public void flush() {
+		try {
+			StringBuilder sb = new StringBuilder(1024);
+			sb.append(HTTP_VERSION).append(SPACE).append(status).append(NEW_LINE);
+
+			this.headers.put(SERVER, Configurations.NAME + "/" + Configurations.VERSION);
+			this.headers.put(CONNECTION, CONNECTION_CLOSE); // ignore keep-alive and always close the connection
+//			this.headers.put(DATE, new Date().toString());
+			java.text.DateFormat fmt = new java.text.SimpleDateFormat(
+						"EEE, d MMM yyyy hh:mm:ss z",
+						new java.text.DateFormatSymbols(java.util.Locale.CHINA));
+			fmt.setTimeZone(java.util.TimeZone.getTimeZone("GMT"));
+			this.headers.put(DATE, fmt.format(new Date()));
+			// default content type
+			if (!this.headers.containsKey(Configurations.CONTENT_TYPE)) {
+				this.headers.put(Configurations.CONTENT_TYPE, Configurations.DEFAULT_CONTENT_TYPE);
+			}
+			// jquery getJson needs this format
+			if (jsonCallback != null) {
+				content = new StringBuilder(jsonCallback).append(LEFT_PARENTHESE).append(content).append(RIGHT_PARENTHESE);
+			}
+			// content length. Note: it should be final encoded byte-length, not char-length
+			int len = content.toString().getBytes(Configurations.DEFAULT_ENCODING).length;
+			this.headers.put(CONTENT_LENGTH, "" + len);
+
+			Iterator<Entry<String, String>> headers = this.headers.entrySet().iterator();
+			Entry<String, String> header;
+			while (headers.hasNext()) {
+				header = headers.next();
+				sb.append(header.getKey()).append(HEADER_SEPARATOR).append(header.getValue()).append(NEW_LINE);
+			}
+			sb.append(NEW_LINE);
+			sb.append(content);
+
+//			logger.info("response: " + sb.toString()); ///////// debug
+			out.write(sb.toString());
+			out.flush();
+//			logger.info("response completed"); ///////// debug
+		} catch (IOException e) {
+			// ignore (failed silently)
+//			logger.warn("exception in flush(): ", e); ///////// debug
+		}
+	}
+
+	/**
+	 * unified error response handler.
+	 */
+	public static void responseError(int returnCode, String msg, Request request, Response response) {
+		response.setHeader(Configurations.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+		OperationResult result = new OperationResult(request);
+		result.setReturnCode(returnCode);
+		result.setException(msg);
+		response.print(result.toJsonString());
+		response.flush();
+	}
+
+	/**
+	 * @param jsonCallback the jsonCallback to set
+	 */
+	public void setJsonCallback(String jsonCallback) {
+		this.jsonCallback = jsonCallback;
+	}
+}
