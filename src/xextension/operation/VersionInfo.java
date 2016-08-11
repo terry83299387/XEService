@@ -24,7 +24,7 @@ public class VersionInfo extends Processor {
 	private static final String VERSION				= "version";
 	private static final String COPYRIGHT			= "copyright";
 
-	private static final String REFERER				= "Referer";
+	private static final String REFERER				= "referer";
 	private static final String PROTOCOL_SEPARATOR	= "://";
 	private static final String COLON				= ":";
 	private static final String SLASH				= "/";

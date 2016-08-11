@@ -191,7 +191,9 @@ public class FileTransfer extends Processor {
 			targetPath = args.get("home");
 		} else {
 			client.initTransfer();
-			targetPath = client.getDownloadDir();
+//			targetPath = client.getDownloadDir(); // TODO 下载时会在另一个线程中弹出选择文件对话框，所以这里是获取不到存储目录的
+												  // 并且用户还可能会点击文件选择框中的取消按钮取消下载，实现时需要全面考虑这些因素。
+												  // 不过目前不需要保存下载参数，所以这里暂时不做处理
 		}
 
 		OperationResult result = new OperationResult(session);

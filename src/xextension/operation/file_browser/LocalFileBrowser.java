@@ -26,10 +26,7 @@ public class LocalFileBrowser {
 	}
 
 	public String getSelectedFilesStr() {
-		if (!fileChooser.selected)
-			throw new IllegalStateException("file has not been selected");
-
-		File[] files = fileChooser.selectedFiles;
+		File[] files = getSelectedFiles();
 		if (files == null) {
 			return null;
 		}
@@ -40,6 +37,9 @@ public class LocalFileBrowser {
 				sb.append(FileBrowser.FILE_SEPARATOR);
 			}
 			sb.append(file.getAbsolutePath());
+			if (file.isDirectory()) {
+				sb.append(File.separator);
+			}
 		}
 		return sb.toString();
 	}

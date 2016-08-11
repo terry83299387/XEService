@@ -24,7 +24,8 @@ public final class Configurations {
 
 	// general constants
 	public static final String	DEFAULT_ENCODING		= "UTF-8";
-	public static final int[]	CANDIDATE_PORTS			= {20052, 26126, 22862};
+	// 2016.8.10 QiaoMingkui: use 1 port only
+	public static final int[]	CANDIDATE_PORTS			= {20052/*, 26126, 22862*/};
 	public static final long	REQUEST_TIME_OUT		= 30 * 1000; // 30 secs
 
 	// request & response filed names

@@ -23,7 +23,8 @@
  */
 var PluginManager = (function() {
 	var NAME  = 'XeXtension',
-			PORTS = [ 20052, 26126, 22862 ],
+			// 2016.8.10 QiaoMingkui: only use 1 port
+			PORTS = [ 20052/*, 26126, 22862*/ ],
 			OPERATORS = {
 				echoBack               : 1,
 				fileBrowser            : 2,
@@ -62,7 +63,8 @@ var PluginManager = (function() {
 		var _detectXeXtension = function() {
 			if (i < PORTS.length) {
 				port = PORTS[i++];
-				url = 'https://localhost:' + port + '/?jsoncallback=?';
+//				url = 'https://localhost:' + port + '/?jsoncallback=?';
+				url = 'http://localhost:' + port + '/?jsoncallback=?';
 				sendRequest(OPERATORS.versionInfo, null, null, function(resp, status, xhr, ex) {
 					if (resp && resp.returnCode === RETURN_CODES.OPERATION_SUCCEED) {
 						var verInfo = resp.extraData;
@@ -91,14 +93,11 @@ var PluginManager = (function() {
 		if (!_init) {
 			if (!_initializing) {
 				init(function() {
-					Xfinity.message.confirm(
-						'此操作需要XeXtension，<a href="download/XfinityExtension.zip" target="_blank">下载</a>（无JRE，4.9MB），'
+					Xfinity.message.alert(
+						'此操作需要XeXtension，<a href="download/XfinityExtension.zip" target="_blank">下载</a>（无JRE，5.0MB），'
 								+ '<a href="download/XfinityExtensionWithJRE.zip" target="_blank">下载</a>（含JRE，47.4MB）。'
 								+ '安装遇到问题？查看《<a href="help/xextension-user-guide.jsp" target="_blank">安装与使用帮助</a>》',
-						'提示',
-						function() {
-							console.log(arguments);
-						}
+						'提示'
 					);
 				});
 			}

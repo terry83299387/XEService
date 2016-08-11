@@ -35,20 +35,33 @@ public class RemoteDesktop extends Processor {
 
 	@Override
 	public OperationResult doPost(IHTTPSession session) throws Exception {
-		StringBuilder cmds = new StringBuilder("java -cp libs\\xextension.jar;libs\\remotedesktop0.jar;libs\\remotedesktop.jar;libs\\commons-logging-1.0.4.jar;libs\\commons-net-ftp-3.0.jar;libs\\json.jar;libs\\jsch-0.1.50.jar;libs\\jzlib-1.1.3.jar;libs\\log4j-api-2.4.1.jar;libs\\;libs\\log4j-core-2.4.1.jar;libs\\plugin.jar;libs\\swing-layout-1.0.jar xextension.operation.remote_desktop.RemoteDesktop ");
-		cmds.append("\"").append(session.getParameter("connectAddr")).append("\" ")
-				.append("\"").append(session.getParameter("connectPort")).append("\" ")
-				.append("\"").append(session.getParameter("clientkey")).append("\" ")
-				.append("\"").append(session.getParameter("password")).append("\" ")
-				.append("\"").append(session.getParameter("appName")).append("\" ")
-				.append("\"").append(session.getParameter("appVersion")).append("\" ")
-				.append("\"").append(session.getParameter("appInitParams")).append("\" ")
-				.append("\"").append(session.getParameter("serverInitParams")).append("\" ")
-				.append("\"").append(session.getParameter("acquirement")).append("\" ")
-				.append("\"").append(session.getParameter("clusterName")).append("\" ")
-				.append("\"").append(session.getParameter("hostUserName")).append("\" ")
-				.append("\"").append(session.getParameter("workDir")).append("\" ")
-				.append("\"").append(session.getParameter("displayUserName")).append("\"");
+		StringBuilder cmds = new StringBuilder("java -cp libs\\xextension.jar")
+			.append(";libs\\remotedesktop0.jar")
+			.append(";libs\\remotedesktop.jar")
+			.append(";libs\\commons-logging-1.1.1.jar")
+			.append(";libs\\commons-net-ftp-3.0.jar")
+			.append(";libs\\json.jar")
+			.append(";libs\\jsch-0.1.50.jar")
+			.append(";libs\\jzlib-1.1.3.jar")
+			.append(";libs\\log4j-api-2.4.1.jar")
+			.append(";libs\\")
+			.append(";libs\\log4j-core-2.4.1.jar")
+			.append(";libs\\plugin.jar")
+			.append(";libs\\swing-layout-1.0.jar")
+			.append(" xextension.operation.remote_desktop.RemoteDesktop")
+			.append(" \"").append(session.getParameter("connectAddr")).append("\" ")
+			.append("\"").append(session.getParameter("connectPort")).append("\" ")
+			.append("\"").append(session.getParameter("clientkey")).append("\" ")
+			.append("\"").append(session.getParameter("password")).append("\" ")
+			.append("\"").append(session.getParameter("appName")).append("\" ")
+			.append("\"").append(session.getParameter("appVersion")).append("\" ")
+			.append("\"").append(session.getParameter("appInitParams")).append("\" ")
+			.append("\"").append(session.getParameter("serverInitParams")).append("\" ")
+			.append("\"").append(session.getParameter("acquirement")).append("\" ")
+			.append("\"").append(session.getParameter("clusterName")).append("\" ")
+			.append("\"").append(session.getParameter("hostUserName")).append("\" ")
+			.append("\"").append(session.getParameter("workDir")).append("\" ")
+			.append("\"").append(session.getParameter("displayUserName")).append("\"");
 
 		try {
 			logger.info("cmds: " + cmds.toString());
@@ -197,23 +210,25 @@ public class RemoteDesktop extends Processor {
 	}
 
 	public static void main(String[] args) throws Exception {
-		// test1
-		args = new String[] {
-				"xfinity.net.cn",
-				"6000",
-				"zluqu5wg",
-				"445c3903016b0e15deca300c5cdb2457",
-				"CFX",
-				"11.0",
-				"",
-				" -depth 24 -geometry 1680x1050",
-				"A1",
-				"蜂鸟LinuxHPC", // "SSC_HBird"不行，集群名称与router上的权限配置不符
-				"8ad8bf2f5159894e",
-				"/home/linux/users/rdtest/jhchen",
-				"jhchen"
-		};
 		openApp(args);
+
+		// test1
+//		args = new String[] {
+//				"xfinity.net.cn",
+//				"6000",
+//				"zluqu5wg",
+//				"445c3903016b0e15deca300c5cdb2457",
+//				"CFX",
+//				"11.0",
+//				"",
+//				" -depth 24 -geometry 1680x1050",
+//				"A1",
+//				"蜂鸟LinuxHPC", // "SSC_HBird"不行，集群名称与router上的权限配置不符
+//				"8ad8bf2f5159894e",
+//				"/home/linux/users/rdtest/jhchen",
+//				"jhchen"
+//		};
+//		openApp(args);
 
 		// test2
 //		RemoteDesktop desktop = new RemoteDesktop();
