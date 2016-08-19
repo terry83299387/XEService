@@ -22,7 +22,7 @@ public class XEService extends HTTPD {
 	private static final Logger logger = LogManager.getLogger(XEService.class);
 
 	public XEService() throws IllegalStateException, IOException {
-		makeSecure(HTTPD.makeSSLSocketFactory("/xextension.jks", "1234#a#A".toCharArray()), null);
+//		makeSecure(HTTPD.makeSSLSocketFactory("/xextension.jks", "1234#a#A".toCharArray()), null);
 		String msg = "";
 		boolean success = false;
 		for (int p : Configurations.CANDIDATE_PORTS) {

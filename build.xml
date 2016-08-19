@@ -110,6 +110,12 @@
 		<jar destfile="${output.libs.dir}/${fileOperatorJarName}.jar" basedir="${output.bin.dir}/${fileOperatorJarName}_cls">
 		</jar>
 
+		<!-- changelog -->
+		<copy todir="${output.dir}">
+			<fileset dir="." includes="changelog.txt">
+			</fileset>
+		</copy>
+
 		<!-- resources -->
 		<copy todir="${output.res.dir}">
 			<fileset dir="${input.res.dir}" includes="**">

@@ -1,2 +1,8 @@
 eclipse.preferences.version=1
+encoding//scripts/importcert.bat=GBK
+encoding//scripts/install.bat=GBK
+encoding//scripts/install.bat.https=GBK
+encoding//scripts/restart.bat=GBK
+encoding//scripts/runJar.bat=GBK
+encoding//scripts/uninstall.bat=GBK
 encoding/<project>=UTF-8
