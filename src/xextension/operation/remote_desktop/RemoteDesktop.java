@@ -3,6 +3,7 @@
  */
 package xextension.operation.remote_desktop;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 
@@ -12,7 +13,6 @@ import org.apache.logging.log4j.Logger;
 import scc.net.cn.client.ClientApplet;
 import scc.net.cn.client.ClientProxyDeamon;
 import scc.net.cn.client.ShowInfo;
-
 import xextension.global.Configurations;
 import xextension.global.IDGenerator;
 import xextension.http.IHTTPSession;
@@ -35,7 +35,12 @@ public class RemoteDesktop extends Processor {
 
 	@Override
 	public OperationResult doPost(IHTTPSession session) throws Exception {
-		StringBuilder cmds = new StringBuilder("java -cp libs\\xextension.jar")
+		StringBuilder cmds = new StringBuilder();
+		File java = new File("runtime");
+		if (java.exists() && java.isDirectory()) {
+			cmds.append("runtime\\jre1.7.0_71\\bin\\");
+		}
+		cmds.append("java -cp libs\\xextension.jar")
 			.append(";libs\\remotedesktop0.jar")
 			.append(";libs\\remotedesktop.jar")
 			.append(";libs\\commons-logging-1.1.1.jar")

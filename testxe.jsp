@@ -26,6 +26,7 @@
 
 
 <script type="text/javascript" src="lib/jquery/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="js/message.js"></script>
 <script type="text/javascript" src="js/PluginManager.js"></script>
 <script type="text/javascript">
 	var RETURN_CODES = {
@@ -103,9 +104,21 @@
 	});
 
 	$('#remotedesktop').on('click', function() {
-		alert('暂未实现');
-		// PluginManager.remoteDesktop(null, {
-		// }, remoteDesktopResult);
+		PluginManager.remoteDesktop({
+			"connectAddr": "xfinity.net.cn",
+			"connectPort": 6000,
+			"clientkey": "vlf73hu0",
+			"hostUserName": "b234ca3a71d24747",
+			"password": "2ae2fb1d08a33b88374be83bfb52495a",
+			"appName": "CFX",
+			"appVersion": "11.0",
+			"appInitParams": "",
+			"serverInitParams": " -depth 24 -geometry 1440x900",
+			"acquirement": "A1",
+			"clusterName": "蜂鸟LinuxHPC",
+			"displayUserName": "testuser2",
+			"workDir": "/home/linux/users/rdtest/testuser2"
+		}, remoteDesktopResult, null);
 	});
 
 	$('#getfilesize').on('click', function() {
